@@ -1,0 +1,105 @@
+/*
+ * FECHA: 2019/03/06
+ * AUTOR: Julio Alejandro Santos Corona
+ * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
+ * TÍTULO: js_tabla.css
+ *
+ * Descripción: Estilos de la tabla.
+*/
+
+.js_tabla * {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.js_tabla {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: 2.5em auto;
+    position: relative;
+    margin-top: 1em;
+    width: 100%;
+    font-size: 68%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.js_tabla ul {
+    list-style: none;
+}
+
+.js_tabla_columna {
+    grid-row: 1;
+    margin-bottom: 0.8em;
+    height: 1.8em;
+    background: rgb(21, 23, 24);
+    border-radius: 3px;
+    color: rgb(245, 245, 245);
+    text-transform: uppercase;
+}
+
+.js_tabla_columna > li, .js_tabla_lineas > ul > li {
+    display: inline-grid;
+    padding: 0.3em 0.5em 0.3em 0.5em;
+}
+
+.js_tabla_lineas {
+    grid-row: 2;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.js_tabla_lineas > ul {
+    opacity: 1;
+    max-height: 20em;
+    transition: opacity ease-out 0.5s, max-height ease-out 0.5s;
+}
+
+.js_tabla_lineas > ul > li {
+    position: relative;
+    margin-top: 0.12em;
+    min-height: 1.1em;
+    vertical-align: middle;
+}
+
+.js_tabla_lineas > ul:nth-child(2n + 1) {
+    background: rgba(21, 23, 24, 0.03);
+}
+
+.js_tabla_edicion_on {
+    position: relative;
+    padding: 0 0.2em 0 0.2em;
+    width: 100%;
+    height: 100%;
+    border: solid 1px rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.js_tabla_edicion {
+    cursor: pointer;
+}
+
+.js_tabla_edicion::before {
+    content: "*";
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    color: rgb(234, 29, 37);
+    transition: width ease-out 0.1s, height ease-out 0.1s, top ease-out 0.1s, left ease-out 0.1s;
+    font-size: 105%;
+}
+
+.js_tabla_edicion:hover::before {
+    content: "Editar";
+    padding-left: 0.2em;
+    top: 0.2em;
+    left: 0.2em;
+    width: 3.1em;
+    height: 1.2em;
+    background: rgba(234, 29, 37, 0.8);
+    border-radius: 3px;
+    color: rgb(245, 245, 245);
+    box-sizing: border-box;
+}
