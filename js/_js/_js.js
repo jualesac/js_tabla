@@ -38,21 +38,21 @@
 
         objHTML = (id instanceof Event) ? id.target : (id instanceof HTMLElement || id instanceof NodeList) ? id : (document.querySelector (id)) ? ((document.querySelectorAll (id).length > 1) ? document.querySelectorAll (id) : document.querySelector (id)) : document.getElementById (id);
 
-        objHTML.event = funcion (function (evento, callback) {
+        objHTML.event = funcion (function (evento, callback) {;
             this.addEventListener (evento, callback);
-        });
+        }, false);
 
         objHTML.rmEvent = funcion (function (evento, funcion) {
             this.removeEventListener (evento, funcion);
-        });
+        }, false);
 
         objHTML.keyBlock = funcion (function (regexpBloqueada, callbackEnter) {
             keyBlock (this, regexpBloqueada, callbackEnter);
-        });
+        }, false);
 
         objHTML.inputBlock = funcion (function (regexpValido, callbackEnter) {
             inputBlock (this, regexpValido, callbackEnter);
-        });
+        }, false);
 
         objHTML.addStyle = funcion (function (estilo) {
             checkType (estilo, "string");
@@ -62,8 +62,6 @@
             if (!regExp.test (this.className)) {
                 this.className = (`${this.className} ${estilo}`).trim ();
             }
-
-            return this;
         });
 
         objHTML.rmStyle = funcion (function (estilo) {
@@ -72,8 +70,6 @@
             let regExp = new RegExp (`(^| )${estilo}( |$)`);
 
             this.className = this.className.replace (regExp, "").trim ();
-
-            return this;
         });
 
         objHTML.addrmStyle = funcion (function (estilo) {
@@ -86,8 +82,6 @@
             } else {
                 this.className = (`${this.className} ${estilo}`).trim ();
             }
-
-            return this;
         });
 
         objHTML.addrmStyleValue = funcion (function (propiedad, valor) {
@@ -100,8 +94,6 @@
             } else {
                 obj[propiedad] = "";
             }
-
-            return this;
         });
 
         objHTML.setAttributes = funcion (function (json) {
@@ -120,8 +112,6 @@
 
                 throw new Error (error);
             }
-
-            return this;
         });
 
         objHTML.clone = function (callback, boolHijos) {
@@ -142,8 +132,6 @@
             callback (clon);
 
             this.parentNode.appendChild (clon);
-
-            return this;
         };
 
         objHTML.appendTo = function (padreHtml) {
@@ -152,24 +140,37 @@
             padreHtml = (padreHtml instanceof HTMLElement) ? padreHtml : _js.id (padreHtml);
 
             padreHtml.appendChild (this);
-
-            return this;
         };
 
 
-        function funcion (callback) {
+        function funcion (callback, retourn) {
+            retourn = (retourn === true || retourn === undefined) ? true : false;
+            
             let cllBack;
 
             if (objHTML instanceof HTMLElement) {
-                cllBack = callback;
+                cllBack = function (...arg) {
+                    let f = callback.bind (this); //Se crea una nueva función pasando un contexto
+
+                    f (...arg);
+                
+                    if (retourn) {
+                        return this;
+                    }
+                };
             }
 
             if (objHTML instanceof NodeList) {
                 cllBack = function (...arg) {
                     objHTML.forEach (function (item) {
-                        item.tmpFunction = callback;
-                        item.tmpFunction (...arg);
+                        let f = callback.bind (item);
+                        
+                        f (...arg);
                     });
+                    
+                    if (retourn) {
+                        return objHTML;
+                    }
                 };
             }
 
@@ -202,16 +203,6 @@
         }
 
         return this.id (elemento);
-    };
-
-    this.eventMaker = function (arrayId, evento, callback) {
-        callback = callback || function () { return; };
-
-        checkInstance (arrayId, Array, "Array");
-
-        for (let id in arrayId) {
-            this.id (arrayId[id]).event (evento, callback);
-        }
     };
 
     function inputBlock (objeto, regexpValido, callbackEnter) {
