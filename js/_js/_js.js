@@ -150,9 +150,7 @@
 
             if (objHTML instanceof HTMLElement) {
                 cllBack = function (...arg) {
-                    let f = callback.bind (this); //Se crea una nueva función pasando un contexto
-
-                    f (...arg);
+                    callback.call (this, ...arg);
                 
                     if (retourn) {
                         return this;
@@ -163,9 +161,7 @@
             if (objHTML instanceof NodeList) {
                 cllBack = function (...arg) {
                     objHTML.forEach (function (item) {
-                        let f = callback.bind (item);
-                        
-                        f (...arg);
+                        callback.call (item, ...arg);
                     });
                     
                     if (retourn) {
