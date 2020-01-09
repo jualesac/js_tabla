@@ -2,7 +2,7 @@
 /*
  * FECHA: 2018/10/15
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jualesac@yahoo.com
+ * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
  * TÍTULO: _js.js
  * VERSIÓN: 1.5.0 (Versión a la última actualización)
  *
@@ -38,16 +38,12 @@
 
         objHTML = (id instanceof Event) ? id.target : (id instanceof HTMLElement || id instanceof NodeList) ? id : (document.querySelector (id)) ? ((document.querySelectorAll (id).length > 1) ? document.querySelectorAll (id) : document.querySelector (id)) : document.getElementById (id);
 
-        objHTML.event = funcion (function (evento, callback) {;
+        objHTML.event = funcion (function (evento, callback) {
             this.addEventListener (evento, callback);
         }, false);
 
         objHTML.rmEvent = funcion (function (evento, funcion) {
             this.removeEventListener (evento, funcion);
-        }, false);
-
-        objHTML.keyBlock = funcion (function (regexpBloqueada, callbackEnter) {
-            keyBlock (this, regexpBloqueada, callbackEnter);
         }, false);
 
         objHTML.inputBlock = funcion (function (regexpValido, callbackEnter) {
@@ -114,7 +110,7 @@
             }
         });
 
-        objHTML.clone = function (callback, boolHijos) {
+        objHTML.clone = funcion (function (callback, boolHijos) {
             exclusive ();
 
             if (typeof (callback) !== "function") {
@@ -132,26 +128,82 @@
             callback (clon);
 
             this.parentNode.appendChild (clon);
-        };
+        });
 
-        objHTML.appendTo = function (padreHtml) {
+        objHTML.appendTo = funcion (function (padreHtml) {
             exclusive ();
 
             padreHtml = (padreHtml instanceof HTMLElement) ? padreHtml : _js.id (padreHtml);
 
             padreHtml.appendChild (this);
-        };
+        });
+
+        objHTML.keyBlock = funcion (function (regBloqueada, callbackEnter) {
+            callbackEnter = callbackEnter || function () { return; };
+
+            checkInstance (this, HTMLElement, "HTMLElement");
+            checkInstance (callbackEnter, Function, "Function");
+
+            let especiales;
+            let regExp;
+
+            especiales = new RegExp ("Control|Arrow|Space|Backspace|Tab|Home|End|Delete|Insert|Dead|F[0-9]{1,2}");
+            regExp = new RegExp (`(?:${regBloqueada})`);
+
+            this.addEventListener ("keydown", validar);
+            this.addEventListener ("keyup", compuerta);
+
+            function validar (evento) {
+                let tecla;
+
+                tecla = evento.key;
+
+                if (/Enter/.test (tecla)) {
+                    seguro.call (this);
+                    callbackEnter ();
+                    return;
+                }
+
+                if (regExp.test (tecla)) {
+                    if (especiales.test (tecla)) {
+                        this.addEventListener ("blur", seguro);
+                        this.removeEventListener ("keydown", validar);
+                    } else {
+                        evento.preventDefault ();
+                    }
+                }
+            }
+
+            function compuerta (evento) {
+                let tecla;
+
+                tecla = evento.key;
+
+                if (especiales.test (tecla)) {
+                    seguro.call (this);
+                }
+            }
+
+            function seguro () {
+                this.addEventListener ("keydown", validar);
+                this.removeEventListener ("blur", seguro);
+
+                if (regExp.test (this.value)) {
+                    this.value = this.value.split (regExp).join ("");
+                }
+            }
+        }, false);
 
 
         function funcion (callback, retourn) {
-            retourn = (retourn === true || retourn === undefined) ? true : false;
-            
+            retourn = (retourn === true || retourn == undefined) ? true : false;
+
             let cllBack;
 
             if (objHTML instanceof HTMLElement) {
                 cllBack = function (...arg) {
                     callback.call (this, ...arg);
-                
+
                     if (retourn) {
                         return this;
                     }
@@ -163,7 +215,7 @@
                     objHTML.forEach (function (item) {
                         callback.call (item, ...arg);
                     });
-                    
+
                     if (retourn) {
                         return objHTML;
                     }
@@ -255,62 +307,6 @@
 
             if (!regExp.test (objeto.value)) {
                 objeto.value = "";
-            }
-        }
-    };
-
-    function keyBlock (objeto, regexpBloqueada, callbackEnter) {
-        callbackEnter = callbackEnter || function () { return; };
-
-        checkInstance (objeto, HTMLElement, "HTMLElement");
-        checkInstance (callbackEnter, Function, "Function");
-
-        let especiales;
-        let regExp;
-
-        especiales = new RegExp ("Control|Arrow|Space|Backspace|Tab|Home|End|Delete|Insert|Dead|F[0-9]{1,2}");
-        regExp = new RegExp (`(?:${regexpBloqueada})+`);
-
-        objeto.addEventListener ("keydown", validar);
-        objeto.addEventListener ("keyup", compuerta);
-
-        function validar (evento) {
-            let tecla;
-
-            tecla = evento.key;
-
-            if (/Enter/.test (tecla)) {
-                seguro ();
-                callbackEnter ();
-                return;
-            }
-
-            if (regExp.test (tecla)) {
-                if (especiales.test (tecla)) {
-                    objeto.addEventListener ("blur", seguro);
-                    objeto.removeEventListener ("keydown", validar);
-                } else {
-                    evento.preventDefault ();
-                }
-            }
-        }
-
-        function compuerta (evento) {
-            let tecla;
-
-            tecla = evento.key;
-
-            if (especiales.test (tecla)) {
-                seguro ();
-            }
-        }
-
-        function seguro () {
-            objeto.addEventListener ("keydown", validar);
-            objeto.removeEventListener ("blur", seguro);
-
-            if (regExp.test (objeto.value)) {
-                objeto.value = objeto.value.split (regExp).join ("");
             }
         }
     };
