@@ -65,8 +65,14 @@ var JS_TABLA = {
         };
 
 
-        this.lineas = function (config, datos, callback) {
+        this.lineas = function (config, datos, callback, agregar) {
+            if (typeof (callback) === "boolean") {
+                agregar = callback;
+                callback = undefined;
+            }
+
             callback = callback || function () { return; };
+            agregar = agregar || false;
 
             let tabla;
             let lineas;
@@ -118,9 +124,15 @@ var JS_TABLA = {
                 }
 
                 callback (linea, argumentos);
+
+                if (agregar) {
+                    tabla.childNodes[1].appendChild (linea);
+                }
             }
 
-            tabla.replaceChild (lineas, tabla.childNodes[1]);
+            if (!agregar) {
+                tabla.replaceChild (lineas, tabla.childNodes[1]);
+            }
             //_js.id (`${id}_lineas`).innerHTML = lineas.innerHTML;
         };
     },
@@ -145,8 +157,8 @@ var JS_TABLA = {
             this.columnas (configuracion);
         };
 
-        this.print = function (datos, callback) {
-            this.lineas (configuracion, datos, callback);
+        this.print = function (datos, callback, agregar) {
+            this.lineas (configuracion, datos, callback, agregar);
 
             _js.id (`${id}_lineas`).event ("click", editar);
         };

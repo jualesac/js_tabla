@@ -38,6 +38,10 @@
 
         objHTML = (id instanceof Event) ? id.target : (id instanceof HTMLElement || id instanceof NodeList) ? id : (document.querySelector (id)) ? ((document.querySelectorAll (id).length > 1) ? document.querySelectorAll (id) : document.querySelector (id)) : document.getElementById (id);
 
+        if (objHTML === null) {
+            return null;
+        }
+
         objHTML.event = funcion (function (evento, callback) {
             this.addEventListener (evento, callback);
         }, false);
