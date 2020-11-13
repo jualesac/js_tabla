@@ -1,7 +1,7 @@
 /*
  * FECHA: 2019/03/06
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jualesac@yahoo.com
+ * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
  * TÍTULO: js_tabla.css
  *
  * Descripción: Estilos de la tabla.
@@ -16,8 +16,8 @@
 .js_tabla {
     display: grid;
     grid-template-columns: auto;
-    grid-template-rows: 2.5em auto;
-    position: relative;
+    grid-template-rows: auto;
+    position: absolute;
     margin-top: 1em;
     width: 100%;
     font-size: 68%;
@@ -25,11 +25,20 @@
     overflow-y: hidden;
 }
 
+.js_tabla > div:first-child {
+    grid-row: 1;
+    display: grid;
+    grid-template-rows: 2.5em auto;
+    overflow: auto;
+}
+
+
 .js_tabla ul {
     list-style: none;
 }
 
-.js_tabla_columna {
+.js_tabla_columns {
+    position: relative;
     grid-row: 1;
     margin-bottom: 0.8em;
     height: 1.8em;
@@ -39,36 +48,39 @@
     text-transform: uppercase;
 }
 
-.js_tabla_columna > li, .js_tabla_lineas > ul > li {
+.js_tabla_columns > li, .js_tabla_lines > ul > li {
     display: inline-grid;
     padding: 0.3em 0.5em 0.3em 0.5em;
 }
 
-.js_tabla_lineas {
+.js_tabla_lines {
     grid-row: 2;
     overflow-x: hidden;
     overflow-y: auto;
 }
 
-.js_tabla_lineas > ul {
+.js_tabla_lines > ul {
     opacity: 1;
     max-height: 20em;
+    background: rgb(250, 250, 250);
+    border-top: solid 1.5px rgb(205, 205, 205);
     transition: opacity ease-out 0.5s, max-height ease-out 0.5s;
 }
 
-.js_tabla_lineas > ul > li {
+.js_tabla_lines > ul > li {
     position: relative;
-    margin-top: 0.12em;
-    min-height: 1.1em;
+    margin-top: 0.3em;
+    min-height: 1.55em;
     vertical-align: middle;
 }
 
-.js_tabla_lineas > ul:nth-child(2n + 1) {
-    background: rgba(21, 23, 24, 0.03);
+.js_tabla_lines > ul:last-child {
+    border-bottom: solid 1.5px rgb(205, 205, 205);
 }
 
-.js_tabla_edicion_on {
+.js_tabla_edit_on {
     position: relative;
+    top: -2px;
     padding: 0 0.2em 0 0.2em;
     width: 100%;
     height: 100%;
@@ -77,11 +89,11 @@
     box-sizing: border-box;
 }
 
-.js_tabla_edicion {
+.js_tabla_edit {
     cursor: pointer;
 }
 
-.js_tabla_edicion::before {
+.js_tabla_edit::before {
     content: "*";
     position: absolute;
     width: 1px;
@@ -89,17 +101,53 @@
     color: rgb(234, 29, 37);
     transition: width ease-out 0.1s, height ease-out 0.1s, top ease-out 0.1s, left ease-out 0.1s;
     font-size: 105%;
+    text-align: left;
 }
 
-.js_tabla_edicion:hover::before {
+.js_tabla_edit:hover::before {
     content: "Editar";
     padding-left: 0.2em;
     top: 0.2em;
     left: 0.2em;
-    width: 3.1em;
-    height: 1.2em;
+    width: 3.25em;
+    height: 1.3em;
     background: rgba(234, 29, 37, 0.8);
     border-radius: 3px;
     color: rgb(245, 245, 245);
     box-sizing: border-box;
+}
+
+.js_tabla_pagination {
+    grid-row: 2;
+    position: relative;
+    margin: auto;
+    height: 30px;
+    font-size: 200%;
+}
+
+.js_tabla_pagination > p {
+    display: table-cell;
+    position: relative;
+    top: 0.2em;
+    width: 1.4em;
+    text-align: center;
+    font-size-adjust: 0.4;
+    border: solid 1px rgb(183, 183, 183);
+    border-radius: 20%;
+    cursor: pointer;
+}
+
+.js_tabla_pagination > p:nth-child(2) {
+    width: 3.2em;
+    border: 0;
+    text-align: center;
+    cursor: default;
+}
+
+.js_tabla_pagination > p:nth-child(2n+1):hover {
+    border: solid 1px rgb(21, 23, 24);
+}
+
+.js_tabla_pagination > p:nth-child(2n+1):active {
+    background: rgb(235, 235, 235);
 }
