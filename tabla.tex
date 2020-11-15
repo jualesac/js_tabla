@@ -1,0 +1,260 @@
+%
+% FECHA: 2020-11-14
+% AUTOR: Julio Alejandro Santos Corona
+% CORREO: jualesac@yahoo.com
+% TÍTULO: tabla.tex
+%
+% Descripción: Documentación de la clase AJAX.
+%
+
+\documentclass[10pt]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{anysize}
+\usepackage{colortbl}
+\title{TABLA v.1.2}
+\author{Julio Alejandro Santos Corona}
+\date{14 de noviembre de 2020}
+
+\marginsize{2.5cm}{2.5cm}{0cm}{1.5cm}
+
+\definecolor{comment}{rgb}{0.5, 0.5, 0.5}
+\definecolor{background}{rgb}{0.21, 0.24, 0.25}
+
+\begin{document}
+\lstdefinelanguage{JavaScript}{
+	morekeywords={
+		new,
+		function,
+		var,
+		let,
+		limit,
+		setConfig,
+		getCols,
+		getRows,
+		getLimit,
+		reset,
+		clear,
+		onEdit,
+		onScroll,
+		onPagination,
+		lines,
+		deleteLine
+	},
+	sensitive=false,
+	morecomment=[l][\color{comment}]{//},
+	morecomment=[s][\color{comment}]{/*}{*/}
+}
+
+\lstset{breaklines=true, tabsize=4, language=JavaScript}
+\lstset{basicstyle=\small, numbers=left, numberstyle=\small, stepnumber=1, numbersep=-12pt, backgroundcolor=\color{white}, frame=leftline}
+
+\maketitle
+
+La clase provee los elementos principales para la creación de una tabla a través de una configuración inicial y la definición de comportamiento.
+
+\section{Instancia}
+
+La instancia se crea a través del constructor de la función \textbf{JS\_TABLA.main} al que se le pasan 3 argumentos, width, height, id (default: js\_tabla) del div a utilizar.
+\\
+\begin{lstlisting}
+	var tabla = new JS_TABLA.main ("100%", "400px");
+\end{lstlisting}
+
+\subsection{Configuración}
+
+La configuración de la tabla se realiza a través del método \textbf{setConfig} que solicita un argumento tipo object con la siguiente estructura:
+\\\\
+\begin{tabular}{|m{2.2cm}|m{1.5cm}|m{11.5cm}|}
+	\hline
+	\rowcolor{black}\textcolor{white}{Parámetro} & \textcolor{white}{Tipo} & \textcolor{white}{Descripción} \\
+	\hline
+    colnameAlign & boolean & En caso de ser activada, la alineación de los títulos será la misma que la del contenido de cada celda en la columna. \\
+    \hline
+    limitLines & boolean & Activa la limitación de filas en la tabla, el número límite se define con el método \textbf{limit}. \\
+    \hline
+    pagination & boolean & Muestra los controles de paginación. \\
+    \hline
+    callbackScroll & boolean & Activa la posibilidad de ejecutar una petición al llegar al final del scroll de filas (útil para tablas que muestran información particionada). \\ 
+    \hline
+    columns & object & Configuración de las columnas. \\
+    \hline
+\end{tabular}
+\\\\\\
+Columns requiere los objetos por columna con la siguiente estructura:
+\\\\
+\begin{tabular}{|m{2.2cm}|m{1.5cm}|m{11.5cm}|}
+	\hline
+	\rowcolor{black}\textcolor{white}{Parámetro} & \textcolor{white}{Tipo} & \textcolor{white}{Descripción} \\
+	\hline
+	name & string & Nombre de la columna. \\
+	\hline
+	size & string & Tamaño de la columna; admite los valores aceptados de \textbf{width}, CSS. \\
+	\hline
+	align & string & Valores admitidos por text-align. \\
+	\hline
+	id & boolean & Registra el valor de la celda como id para la fila. (Oculta por default). \\
+	\hline
+	argument & boolean & Guarda el valor de la celda en un objeto que será aprovechado por el callback del método \textbf{lines}. (Oculta por default). \\
+	\hline
+	visible & boolean & Muestra la columna configurada como id o argumento. \\
+	\hline
+	edit & boolean & Permite modificar el valor de la celda. \\
+	\hline
+\end{tabular}
+\\
+\begin{lstlisting}
+	var config = {
+		colnameAlign: true,
+		limitLines: true,
+		pagination: false,
+		callbackScroll, true,
+		columns: {
+			0: { name: "id", id: true },
+			1: { name: "nombre", size: "10em" },
+			2: { name: "edad", size: "2em", align: "center" },
+			3: { name: "salario", size: "5em", align: "right", edit: true },
+			4: { name: "estado", size: "3em", argument: true, visible: true }
+		}		
+	};
+\end{lstlisting}
+
+\section{Crear filas}
+
+Las filas pueden provenir de una consulta a base de datos pues la estructura arrojada por la misma cumple sin problema con la estructura siguiente:
+\\
+\begin{lstlisting}
+	{
+		0: {
+			0: "val1",
+			1: "val2",
+			2: "val3",
+			.
+			.
+			.
+		},
+		
+		1: {
+			0: "val1",
+			1: "val2",
+			2: "val3",
+			.
+			.
+			.
+		},
+		.
+		.
+		.
+	}
+\end{lstlisting}
+\noindent
+para imprimir las filas bastará con utilizar el método \textbf{lines}, dicho método solicita 3 argumentos que a continuación se describen:
+\\\\
+\begin{tabular}{|m{1.8cm}|m{1.5cm}|m{1.5cm}|m{9.5cm}|}
+	\hline
+	\rowcolor{black}\textcolor{white}{Argumento} & \textcolor{white}{Tipo} & \textcolor{white}{Opcional} & \textcolor{white}{Descripción} \\
+	\hline
+	data & object & No & Valores a rellenar, el objeto debe contener la estructura antes descrita. \\
+	\hline
+	callback & function & Si & Función que se ejecutará por cada fila creada, recibe 2 argumentos, \textbf{line} y \textbf{argments}. \\
+	\hline
+	add & boolean & Si & \textbf{False}(default): La tabla se limpia antes de insertar los valores de data. \textbf{True}: Los valores son agregados inmediatamente abajo de los existentes. \\
+	\hline
+\end{tabular}
+\\\\\\
+Ejemplo:
+\begin{lstlisting}
+	var tabla = new JS_TABLA.main ("100%", "400px");
+	let consulta;
+	
+	tabla.setConfig (config); //Suponiendo que config ya fue asignado
+	
+	consulta = new Promise (/*Peticion ajax*/);
+
+	consulta.then (function (data) {
+		tabla.lines (data);
+	});
+\end{lstlisting}
+
+\subsection{Utilizando callback en lines}
+
+El método \textbf{lines} tiene la posibilidad de ejecutar una función por cada fila a crear y recibe dos argumentos:
+\\\\
+\begin{tabular}{|m{1.8cm}|m{2.5cm}|m{10.4cm}|}
+	\hline
+	\rowcolor{black}\textcolor{white}{Argumento} & \textcolor{white}{Tipo} & \textcolor{white}{Descripción} \\
+	\hline
+	line & HTMLElement & Objeto HTMLELement que contiene todas las propiedades de la fila. \\
+	\hline
+	argments & object & En caso de haber configurado columnas como argument este objeto contendrá los valores con el nombre configurado en \textbf{name}. \\
+	\hline
+\end{tabular}
+
+\newpage
+Ejemplo:
+
+\begin{lstlisting}
+	let consulta = new Promise (/*Peticion ajax*/);
+	
+	/*
+	 * Este callback valida a traves de un argumento el estatus y coloca un
+	 * estilo para toda la fila.
+	*/
+	consulta.then (function (data) {
+		tabla.lines (data, function (line, argments) {
+			//Codigo
+			if (argments.status == 2) {
+				line.style.background = "rgb(250, 0, 0)";
+			}
+		});
+	});
+\end{lstlisting}
+
+\section{Eventos}
+
+La clase cuenta con 3 eventos disponibles \textbf{onEdit}, \textbf{onScroll} y \textbf{onPagination}, cada uno requiere previa configuración y solicitan una función como argumento.
+\\\\
+\begin{tabular}{|m{2cm}|m{2.5cm}|m{10.2cm}|}
+	\hline
+	\rowcolor{black}\textcolor{white}{Método} & \textcolor{white}{Requerimiento} & \textcolor{white}{Descripción} \\
+	\hline
+	onEdit & edit & La función se ejecuta al cambiar el valor de una celda configurada como editable. La función no se ejecutará si se oprime la tecla \textbf{Escape} o si el valor editado resulta igual al original. Adicionalmente el callback recibe dos argumentos HTMLElement la línea y la celda modificada. \\
+	\hline
+	onScroll & callbackScroll & Su ejecución se realizará al llegar al final del scroll. Funcionalidad útil si se requiere cargar datos extra. \\
+	\hline
+	onPagination & pagination & La función se ejecutar al intentar paginar la tabla, dicha función recibe un objeto como argumento:
+		\begin{tabular}{|m{2cm}|m{2cm}|m{4.9cm}|}
+			\hline
+			Argumento & Tipo & Descripción \\
+			\hline
+			start & number & Inicio del rango a obtener en la paginación. \\
+			\hline
+			end & number & Final del rango a obtener en la paginación. \\
+			\hline
+			page & number & Página siguiente luego de la paginación. \\
+			\hline
+			update & function & Método que actualiza el número de página. \\
+		\end{tabular} \\
+	\hline
+\end{tabular}
+
+\section{Métodos extra}
+
+\begin{itemize}
+	\item \textbf{limit}: Configura la cantidad de filas a mostrar; sólo aplica en la configuración general y en la paginación; requiere un argumento number mayor a 0.
+	
+	\item \textbf{getCols}: Obtiene la cantidad de columnas configuradas.
+	
+	\item \textbf{getRows}: Obtiene la cantidad de filas mostradas.
+	
+	\item \textbf{getLimit}: Obtiene el límite de filas configurado.
+	
+	\item \textbf{deleteLine}: Elimina una fila, solicita un argumento que puede ser el HTMLElement del objeto a eliminar o el id de la fila.
+	
+	\item \textbf{clear}: Limpia las filas mostradas.
+	
+	\item \textbf{reset}: Elimina la tabla completa, columnas y filas.
+\end{itemize}
+
+\end{document}
