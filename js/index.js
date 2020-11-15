@@ -2,101 +2,43 @@
 
 //Configuración de la tabla
 var config = {
-    0: { id: 1 },
-    1: { name: "argumento1", argument: 1 },
-    2: { name: "columna1", size: "10em" },
-    3: { name: "columna2", size: "15em", edit: 1 },
-    4: { name: "columna3", size: "8em" },
-    5: { name: "columna4", size: "9em" },
-    6: { name: "columna5", size: "18em", edit: 1 },
-    7: { name: "argumento2", argument: 1 },
+    colnameAlign: 1 ,
+    limitLines: 1 ,
+    pagination: 1 ,
+    callbackScroll: 1 ,
+    columns: {
+        0 : { name : "id" , id: 1 } ,
+        1 : { name : "nombre", size: "10em" } ,
+        2 : { name : "edad", size: "2em" , align: ”center” } ,
+        3 : { name : "salario", size: "5em" , align: "right" , edit: true } ,
+        4 : { name : "estado", size: "3em" , argument : true, visible: true }
+    }
 };
 //Simulación de datos, éstos pueden venir de una consulta a BD
 var datos = {
     0: {
         0: "2",
-        1: "1",
-        2: "Valor1",
-        3: "Valor2",
-        4: "Valor3",
-        5: "Valor4",
-        6: "Valor5",
-        7: "argumento"
+        1: "Juan",
+        2: "20",
+        3: "1200",
+        4: "1"
     },
 
     1: {
         0: "8",
-        1: "2",
-        2: "Valor1",
-        3: "Valor2",
-        4: "Valor3",
-        5: "Valor4",
-        6: "Valor5",
-        7: "argumento"
-    },
-
-    2: {
-        0: "12",
-        1: "2",
-        2: "Valor1",
-        3: "Valor2",
-        4: "Valor3",
-        5: "Valor4",
-        6: "Valor5",
-        7: "argumento"
-    },
-
-    3: {
-        0: "13",
-        1: "1",
-        2: "Valor1",
-        3: "Valor2",
-        4: "Valor3",
-        5: "Valor4",
-        6: "Valor5",
-        7: "argumento"
-    },
-
-    4: {
-        0: "59",
-        1: "2",
-        2: "Valor1",
-        3: "Valor2",
-        4: "Valor3",
-        5: "Valor4",
-        6: "Valor5",
-        7: "argumento"
-    },
-
-    5: {
-        0: "78",
-        1: "3",
-        2: "Valor1",
-        3: "Valor2",
-        4: "Valor3",
-        5: "Valor4",
-        6: "Valor5",
-        7: "argumento"
-    },
-
-    6: {
-        0: "79",
-        1: "2",
-        2: "Valor1",
-        3: "Valor2",
-        4: "Valor3",
-        5: "Valor4",
-        6: "Valor5",
-        7: "argumento"
+        1: "Pablo",
+        2: "31",
+        3: "2000",
+        4: "0"
     }
 };
 
 window.onload = function () {
-    let tabla = new JS_TABLA.TABLA (600, 450, "js_tabla"); //Instancia de tabla
+    let tabla = new JS_TABLA.main ("600px", "450px", "js_tabla"); //Instancia de tabla
 
     tabla.setConfig (config); //Seteo de configuración
     //Se configura el método a utilizar para la actualización de campos editables
-    tabla.setEdition (function (linea, celda) {
+    tabla.onEdit (function (linea, celda) {
         console.log (linea, celda);
 
         alert (`Se modificó la línea con id: ${linea.id} y valor: ${celda.innerText}`);
@@ -108,15 +50,15 @@ window.onload = function () {
      * realizar acciones especiales, crear columnas nuevas, botones o cambiar
      * el color de fondo a partir de argumentos, en caso de requerirlos.
     */
-    tabla.print (datos, function (linea, argumentos) {
+    tabla.lines (datos, function (linea, argumentos) {
         console.log (linea, argumentos);
 
-        switch (argumentos.argumento1) {
+        switch (argumentos.estado) {
             case "1":
                 linea.style.background = "rgb(119, 198, 97)";
             break;
 
-            case "3":
+            case "0":
                 linea.style.background = "rgb(229, 234, 89)";
             break;
         }
