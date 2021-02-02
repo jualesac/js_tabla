@@ -2,328 +2,321 @@
 /*
  * FECHA: 2018/10/15
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jualesac@yahoo.com
+ * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
  * TÍTULO: _js.js
- * VERSIÓN: 1.5.0 (Versión a la última actualización)
+ * VERSIÓN: 1.8.0 (Versión a la última actualización)
  *
  * Descripción: Librería de funciones _js.
  *
  * Reedición: 2019/03/25
  * Descripción: Se mejora el rendimiento y se amplía la biblioteca.
  *
- * Actualizacion: 2019/07/10
+ * Actualización: 2019/07/10
  * Descripción: Se crearon los métodos manejadores de atributos y
  *              cambiaron los nombres de algunos métodos.
  *
- * Actualizacion: 2019/12/31
+ * Actualización: 2019/12/31
  * Descripción: Se mejora la estructura y se crea un constructor
  *              de métodos.
  *              El método id pasa a ser el método principal al
  *              integrar en él la posibilidad de aceptar listas.
  *              Se permite la encadenación de métodos.
  *              Se eliminan métodos poco útiles.
+ *
+ * Actualización: 2020/04/18
+ * Descripción: Se incorpora el uso de prototypos.
+ *              Desaparece el método id, _js pasa a ser la
+ *              entrada a métodos.
 */
+
 (function (clase) {
-    window._js = new clase ();
+    if (window._js == undefined) {
+        clase ();
+    }
 }) (function () {
-    /******************************************************/
-    /************************* ID *************************/
-    /******************************************************/
-    this.id = function (id) {
+    let js = function (selector) {
         let objHTML;
+        let qs;
 
         if (arguments.length === 0) {
-            throw new Error ("Se esperaba un argumento.");
+            throw new Error ("Se esperaba un argumento");
         }
 
-        objHTML = (id instanceof Event) ? id.target : (id instanceof HTMLElement || id instanceof NodeList) ? id : (document.querySelector (id)) ? ((document.querySelectorAll (id).length > 1) ? document.querySelectorAll (id) : document.querySelector (id)) : document.getElementById (id);
+        if (selector instanceof Element) { return selector; }
 
-        if (objHTML === null) {
-            return null;
-        }
+        qs = document.querySelectorAll (selector);
 
-        objHTML.event = funcion (function (evento, callback) {
-            this.addEventListener (evento, callback);
-        }, false);
+        objHTML = (qs.length > 1) ? qs : (document.querySelector (selector)) ? document.querySelector (selector) : document.getElementById (selector);
 
-        objHTML.rmEvent = funcion (function (evento, funcion) {
-            this.removeEventListener (evento, funcion);
-        }, false);
-
-        objHTML.inputBlock = funcion (function (regexpValido, callbackEnter) {
-            inputBlock (this, regexpValido, callbackEnter);
-        }, false);
-
-        objHTML.addStyle = funcion (function (estilo) {
-            checkType (estilo, "string");
-
-            let regExp = new RegExp (`(^| )${estilo}( |$)`);
-
-            if (!regExp.test (this.className)) {
-                this.className = (`${this.className} ${estilo}`).trim ();
-            }
-        });
-
-        objHTML.rmStyle = funcion (function (estilo) {
-            checkType (estilo, "string");
-
-            let regExp = new RegExp (`(^| )${estilo}( |$)`);
-
-            this.className = this.className.replace (regExp, "").trim ();
-        });
-
-        objHTML.addrmStyle = funcion (function (estilo) {
-            checkType (estilo, "string");
-
-            let regExp = new RegExp (`(^| )${estilo}( |$)`);
-
-            if (regExp.test (this.className)) {
-                this.className = this.className.replace (regExp, "").trim ();
-            } else {
-                this.className = (`${this.className} ${estilo}`).trim ();
-            }
-        });
-
-        objHTML.addrmStyleValue = funcion (function (propiedad, valor) {
-            checkType (propiedad, "string");
-
-            let obj = this.style;
-
-            if (obj[propiedad] === "" || !(obj[propiedad])) {
-                obj[propiedad] = valor;
-            } else {
-                obj[propiedad] = "";
-            }
-        });
-
-        objHTML.setAttributes = funcion (function (json) {
-            checkInstance (json, Object, "Object");
-
-            let atributo;
-
-            try {
-                for (atributo in json) {
-                    this.setAttribute (atributo, json[atributo]);
-                }
-            } catch (error) {
-                if (json instanceof Array) {
-                    throw new TypeError (`Se esperaba un Object como argumento.`);
-                }
-
-                throw new Error (error);
-            }
-        });
-
-        objHTML.clone = funcion (function (callback, boolHijos) {
-            exclusive ();
-
-            if (typeof (callback) !== "function") {
-                boolHijos = callback;
-                callback = function () { return; };
-            }
-
-            boolHijos = boolHijos || false;
-
-            checkInstance (callback, Function, "Function");
-            checkType (boolHijos, "boolean");
-
-            let clon = this.cloneNode (boolHijos);
-
-            callback (clon);
-
-            this.parentNode.appendChild (clon);
-        });
-
-        objHTML.appendTo = funcion (function (padreHtml) {
-            exclusive ();
-
-            padreHtml = (padreHtml instanceof HTMLElement) ? padreHtml : _js.id (padreHtml);
-
-            padreHtml.appendChild (this);
-        });
-
-        objHTML.keyBlock = funcion (function (regBloqueada, callbackEnter) {
-            callbackEnter = callbackEnter || function () { return; };
-
-            checkInstance (this, HTMLElement, "HTMLElement");
-            checkInstance (callbackEnter, Function, "Function");
-
-            let especiales;
-            let regExp;
-
-            especiales = new RegExp ("Control|Arrow|Space|Backspace|Tab|Home|End|Delete|Insert|Dead|F[0-9]{1,2}");
-            regExp = new RegExp (`(?:${regBloqueada})`);
-
-            this.addEventListener ("keydown", validar);
-            this.addEventListener ("keyup", compuerta);
-
-            function validar (evento) {
-                let tecla;
-
-                tecla = evento.key;
-
-                if (/Enter/.test (tecla)) {
-                    seguro.call (this);
-                    callbackEnter ();
-                    return;
-                }
-
-                if (regExp.test (tecla)) {
-                    if (especiales.test (tecla)) {
-                        this.addEventListener ("blur", seguro);
-                        this.removeEventListener ("keydown", validar);
-                    } else {
-                        evento.preventDefault ();
-                    }
-                }
-            }
-
-            function compuerta (evento) {
-                let tecla;
-
-                tecla = evento.key;
-
-                if (especiales.test (tecla)) {
-                    seguro.call (this);
-                }
-            }
-
-            function seguro () {
-                this.addEventListener ("keydown", validar);
-                this.removeEventListener ("blur", seguro);
-
-                if (regExp.test (this.value)) {
-                    this.value = this.value.split (regExp).join ("");
-                }
-            }
-        }, false);
-
-
-        function funcion (callback, retourn) {
-            retourn = (retourn === true || retourn == undefined) ? true : false;
-
-            let cllBack;
-
-            if (objHTML instanceof HTMLElement) {
-                cllBack = function (...arg) {
-                    callback.call (this, ...arg);
-
-                    if (retourn) {
-                        return this;
-                    }
-                };
-            }
-
-            if (objHTML instanceof NodeList) {
-                cllBack = function (...arg) {
-                    objHTML.forEach (function (item) {
-                        callback.call (item, ...arg);
-                    });
-
-                    if (retourn) {
-                        return objHTML;
-                    }
-                };
-            }
-
-            return cllBack;
-        }
-
-        function exclusive () {
-            if (!(objHTML instanceof HTMLElement)) {
-                throw new Error ("El método no está disponible para listas de objetos.");
-            }
-        }
+        if (objHTML === null) { return null; }
 
         return objHTML;
     };
 
-    /******************************************************/
-    /*********************** MÉTODOS **********************/
-    /******************************************************/
-    this.createElement = function (elementoHtml, ns) {
+    js.createElement = function (element, ns) {
         ns = ns || "";
 
-        checkType (elementoHtml, "string");
+        checkType (element, "string");
 
-        let elemento;
+        let elmnt;
 
         if (ns === "") {
-            elemento = document.createElement (elementoHtml);
+            elmnt = document.createElement (element);
         } else {
-            elemento = document.createElementNS (ns, elementoHtml);
+            elmnt = document.createElementNs (ns, element);
         }
 
-        return this.id (elemento);
+        return elmnt;
     };
 
-    function inputBlock (objeto, regexpValido, callbackEnter) {
-        callbackEnter = callbackEnter || function () { return; };
+    let protoHtml = HTMLElement.prototype;
+    let protoList = NodeList.prototype;
 
-        checkInstance (objeto, HTMLElement, "HTMLElement");
+    protoHtml.event = protoList.event = fn (function (evnt, callback) {
+        this.addEventListener (evnt, callback);
+    }, false);
+
+    protoHtml.rmEvent = protoList.rmEvent = fn (function (evnt, callback) {
+        this.removeEventListener (evnt, callback);
+    }, false);
+
+    protoHtml.addStyle = protoList.addStyle = fn (function (style) {
+        checkType (style, "string");
+
+        let regExp = new RegExp (`(?:^| )${style}(?: |$)`);
+
+        if (!regExp.test (this.className)) {
+            this.className = (`${this.className} ${style}`).trim ();
+        }
+    });
+
+    protoHtml.rmStyle = protoList.rmStyle = fn (function (style) {
+        checkType (style, "string");
+
+        let regExp = new RegExp (`(?:^| )${style}(?: |$)`);
+
+        this.className = this.className.replace (regExp, "").trim ();
+    });
+
+    protoHtml.addrmStyle = protoList.addrmStyle = fn (function (style) {
+        checkType (style, "string");
+
+        let regExp = new RegExp (`(?:^| )${style}(?: |$)`);
+
+        if (regExp.test (this.className)) {
+            this.className = this.className.replace (regExp, "").trim ();
+        } else {
+            this.className = (`${this.className} ${style}`).trim ();
+        }
+    });
+
+    protoHtml.addrmStyleValue = protoList.addrmStyleValue = fn (function (property, value) {
+        checkType (property, "string");
+
+        let obj = this.style;
+
+        if (obj[property] === "" || !(obj[property])) {
+            obj[property] = value;
+        } else {
+            obj[property] = "";
+        }
+    });
+
+    protoHtml.setAttributes = protoList.setAttributes = fn (function (json) {
+        checkInstance (json, Object, "Object");
+
+        let attribute;
+
+        try {
+            for (attribute in json) {
+                this.setAttribute (attribute, json[attribute]);
+            }
+        } catch (error) {
+            if (json instanceof Array) {
+                throw new TypeError ("Se esperaba un Object como argumento");
+            }
+
+            throw new Error (error);
+        }
+    });
+
+    protoHtml.clone = protoList.clone = fn (function (callback, boolChild) {
+        if (typeof (callback) !== "function") {
+            boolChild = callback;
+            callback = function () { return; };
+        }
+
+        boolChild = boolChild || false;
+
+        checkInstance (callback, Function, "Function");
+        checkType (boolChild, "boolean");
+
+        let clon = this.cloneNode (boolChild);
+
+        callback (clon);
+
+        this.parentNode.appendChild (clon);
+    });
+
+    protoHtml.appendTo = protoList.appendTo = fn (function (parent) {
+        parent = (parent instanceof HTMLElement) ? parent : js(parent);
+
+        parent.appendChild (this);
+    });
+
+    protoHtml.replace = fn (function (oldObj) {
+        let obj;
+
+        obj = js(oldObj);
+
+        obj.parentNode.replaceChild (this, obj);
+    });
+
+    protoHtml.keyBlock = protoList.keyBlock = fn (function (rgExpBlock, callbackEnter) {
+        callbackEnter = callbackEnter || function () {};
+
+        checkInstance (this, HTMLElement, "HTMLElement");
         checkInstance (callbackEnter, Function, "Function");
 
-        let especiales;
+        let special;
         let regExp;
 
-        especiales = new RegExp ("Control|Arrow|Backspace|Tab|Home|End|Delete|Insert|Shift|F[0-9]{1,2}");
-        regExp = new RegExp (`^${regexpValido}$`);
+        special = new RegExp ("Control|Arrow|Space|Backspace|Tab|Home|End|Delete|Insert|Dead|F[0-9]{1,2}");
+        regExp = new RegExp (`(?:${rgExpBlock})`);
 
-        objeto.addEventListener ("keydown", validar);
-        objeto.addEventListener ("keyup", compuerta);
+        this.addEventListener ("keydown", validate);
+        this.addEventListener ("keyup", gate);
 
-        function validar (evento) {
-            let tecla;
-            let valor;
+        function validate (evnt) {
+            let key;
 
-            tecla = evento.key;
-            valor = objeto.value;
+            key = evnt.key;
 
-            if (/Enter/.test (tecla)) {
-                seguro ();
+            if (/Enter/.test (key)) {
+                lock.call (this);
                 callbackEnter ();
                 return;
             }
 
-            if (!especiales.test (tecla)) {
-                if (!((regExp.test (valor + tecla)) && (tecla.length === 1))) {
-                    evento.preventDefault ();
+            if (regExp.test (key)) {
+                if (special.test (key)) {
+                    this.addEventListener ("blur", lock);
+                    this.removeEventListener ("keydown", validate);
+                } else {
+                    evnt.preventDefault ();
+                }
+            }
+        }
+
+        function gate (evnt) {
+            let key;
+
+            key = evnt.key;
+
+            if (special.test (key)) {
+                lock.call (this);
+            }
+        }
+
+        function lock () {
+            this.addEventListener ("keydown", validate);
+            this.removeEventListener ("blur", lock);
+
+            if (regExp.test (this.value)) {
+                this.value = this.value.split (regExp).join ("");
+            }
+        }
+    }, false);
+
+    protoHtml.structBlock = protoList.structBlock = fn (function (struct, callbackEnter) {
+        callbackEnter = callbackEnter || function () {};
+
+        checkInstance (this, HTMLElement, "HTMLElement");
+        checkInstance (callbackEnter, Function, "Function");
+
+        let special;
+        let regExp;
+
+        special = new RegExp ("Control|Arrow|Backspace|Tab|Home|End|Delete|Insert|Shift|F[0-9]{1,2}");
+        regExp = new RegExp (`^${struct}$`);
+
+        this.addEventListener ("keydown", validate);
+        this.addEventListener ("keyup", gate);
+
+        function validate (evnto) {
+            let key;
+            let value;
+
+            key = evnto.key;
+            value = this.value;
+
+            if (/Enter/.test (key)) {
+                lock.call (this);
+                callbackEnter ();
+                return;
+            }
+
+            if (!special.test (key)) {
+                if (!((regExp.test (value + key)) && (key.length === 1))) {
+                    evnto.preventDefault ();
                 }
             } else {
-                objeto.addEventListener ("blur", seguro);
-                objeto.removeEventListener ("keydown", validar);
+                this.addEventListener ("blur", lock);
+                this.removeEventListener ("keydown", validate);
             }
         }
 
-        function compuerta (evento) {
-            let tecla;
+        function gate (evnto) {
+            let key;
 
-            tecla = evento.key;
+            key = evnto.key;
 
-            if (especiales.test (tecla)) {
-                seguro ();
+            if (special.test (key)) {
+                lock.call (this);
             }
         }
 
-        function seguro () {
-            objeto.addEventListener ("keydown", validar);
-            objeto.removeEventListener ("blur", seguro);
+        function lock () {
+            this.addEventListener ("keydown", validate);
+            this.removeEventListener ("blur", lock);
 
-            if (!regExp.test (objeto.value)) {
-                objeto.value = "";
+            if (!regExp.test (this.value)) {
+                this.value = "";
             }
         }
-    };
+    }, false);
+    //Constructor de métodos
+    function fn (callback, retur) {
+        retur = (retur === true || retur === undefined) ? true : false;
 
-    function checkInstance (objeto, instancia, alias) {
-        if (!(objeto instanceof instancia)) {
+        return function (...arg) {
+            if (this instanceof HTMLElement) {
+                callback.call (this, ...arg);
+            } else if (this instanceof NodeList) {
+                this.forEach (function (item) {
+                    callback.call (item, ...arg);
+                });
+            } else {
+                return null;
+            }
+
+            if (retur) {
+                return this;
+            }
+        };
+    }
+
+    function checkInstance (obj, instance, alias) {
+        if (!(obj instanceof instance)) {
             throw new TypeError (`Se esperaba un objeto ${alias} como argumento.`);
         }
     }
 
-    function checkType (argumento, tipo) {
-        if (typeof (argumento) !== tipo) {
-            throw new TypeError (`Se esperaba un ${tipo} como argumento.`);
+    function checkType (argument, type) {
+        if (typeof (argument) !== type) {
+            throw new TypeError (`Se esperaba un ${type} como argumento.`);
         }
     }
+
+    window._js = js;
 });
