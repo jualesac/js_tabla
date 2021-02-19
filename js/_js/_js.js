@@ -2,9 +2,9 @@
 /*
  * FECHA: 2018/10/15
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
+ * CORREO: jualesac@yahoo.com
  * TÍTULO: _js.js
- * VERSIÓN: 1.8.0 (Versión a la última actualización)
+ * VERSIÓN: 1.8.2 (Versión a la última actualización)
  *
  * Descripción: Librería de funciones _js.
  *
