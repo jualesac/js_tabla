@@ -1,7 +1,7 @@
 /*
- * FECHA: 2019/03/06
+ * FECHA: 2021/05/01
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
+ * CORREO: jualesac@yahoo.com
  * TÍTULO: js_tabla.css
  *
  * Descripción: Estilos de la tabla.
@@ -11,82 +11,66 @@
     border: 0;
     margin: 0;
     padding: 0;
+    --border-line: solid 1.5px rgb(205, 205, 205);
+    --text-padding: 0.3em 0.5em 0.35em 0.5em;
 }
 
 .js_tabla {
-    display: grid;
-    grid-template-columns: auto;
-    grid-template-rows: auto;
     position: absolute;
-    margin-top: 1em;
+    display: grid;
+    grid-template-rows: min-content auto min-content;
+    margin-top: 1.4em;
     width: 100%;
     font-size: 68%;
     overflow-x: auto;
     overflow-y: hidden;
 }
 
+.js_tabla table {
+    border-collapse: collapse;
+}
+
 .js_tabla > div:first-child {
-    grid-row: 1;
-    display: grid;
-    grid-template-rows: 2.5em auto;
-    overflow: auto;
+    display: contents;
 }
 
-
-.js_tabla ul {
-    list-style: none;
+.js_tabla > div:nth-child(2) {
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-.js_tabla_columns {
-    position: relative;
-    grid-row: 1;
+.js_tabla_columns, .js_tabla_lines {
+    display: block;
+}
+
+.js_tabla_columns > tr {
+    display: block;
     margin-bottom: 0.8em;
-    height: 1.8em;
+    min-height: 20px;
     background: rgb(21, 23, 24);
-    border-radius: 3px;
     color: rgb(245, 245, 245);
+    border-radius: 3px;
     text-transform: uppercase;
 }
 
-.js_tabla_columns > li, .js_tabla_lines > ul > li {
-    display: inline-grid;
-    padding: 0.3em 0.5em 0.3em 0.5em;
+.js_tabla_columns > tr > td {
+    display: inline-block;
 }
 
-.js_tabla_lines {
-    grid-row: 2;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-.js_tabla_lines > ul {
-    opacity: 1;
-    max-height: 20em;
-    background: rgb(250, 250, 250);
-    border-top: solid 1.5px rgb(205, 205, 205);
-    transition: opacity ease-out 0.5s, max-height ease-out 0.5s;
-}
-
-.js_tabla_lines > ul > li {
-    position: relative;
-    margin-top: 0.3em;
-    min-height: 1.55em;
-    vertical-align: middle;
-}
-
-.js_tabla_lines > ul:last-child {
-    border-bottom: solid 1.5px rgb(205, 205, 205);
-}
-
-.js_tabla_edit_on {
-    position: relative;
-    top: -2px;
-    padding: 0 0.2em 0 0.2em;
-    width: 100%;
-    height: 100%;
-    border: solid 1px rgba(0, 0, 0, 0.3);
-    border-radius: 3px;
+.js_tabla_columns > tr > td, .js_tabla_lines > tr > td {
+    padding: var(--text-padding);
     box-sizing: border-box;
+}
+
+.js_tabla_lines > tr {
+    opacity: 1;
+    background: rgb(250, 250, 250);
+    border-top: var(--border-line);
+    transition: opacity ease-out 0.5s;
+}
+
+.js_tabla_lines > tr:last-child {
+    border-bottom: var(--border-line);
 }
 
 .js_tabla_edit {
@@ -95,20 +79,21 @@
 
 .js_tabla_edit::before {
     content: "*";
+    display: block;
     position: absolute;
     width: 1px;
     height: 1px;
     color: rgb(234, 29, 37);
-    transition: width ease-out 0.1s, height ease-out 0.1s, top ease-out 0.1s, left ease-out 0.1s;
-    font-size: 105%;
     text-align: left;
+    font-size: 105%;
+    transition: width ease-out 0.1s, height ease-out 0.1s, top ease-out 0.1s, left ease-out 0.1s;
 }
 
 .js_tabla_edit:hover::before {
     content: "Editar";
     padding-left: 0.2em;
-    top: 0.2em;
-    left: 0.2em;
+    margin-top: 0em;
+    margin-left: 0em;
     width: 3.25em;
     height: 1.3em;
     background: rgba(234, 29, 37, 0.8);
@@ -117,37 +102,66 @@
     box-sizing: border-box;
 }
 
-.js_tabla_pagination {
-    grid-row: 2;
+.js_tabla_edit_on {
     position: relative;
-    margin: auto;
+    padding: 0 0.2em 0 0.2em;
+    width: 100%;
+    height: 100%;
+    border: solid 1px rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 97%;
+}
+
+.js_tabla_controls {
+    grid-row: 3;
+    position: absolute;
+    margin-top: 1.4em;
+    width: 100%;
     height: 30px;
+    text-align: center;
     font-size: 200%;
 }
 
-.js_tabla_pagination > p {
-    display: table-cell;
-    position: relative;
-    top: 0.2em;
+.js_tabla_controls > div {
+    display: initial;
+    position: fixed;
+}
+
+.js_tabla_controls > div > p {
+    display: inline-block;
+    position: absolute;
+    left: -0.7em;
     width: 1.4em;
-    text-align: center;
     font-size-adjust: 0.4;
     border: solid 1px rgb(183, 183, 183);
     border-radius: 20%;
     cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-.js_tabla_pagination > p:nth-child(2) {
+.js_tabla_controls > div > p:nth-child(1) {
+    left: -3.4em;
+}
+
+.js_tabla_controls > div > p:nth-child(2) {
+    left: -1.6em;
     width: 3.2em;
     border: 0;
     text-align: center;
     cursor: default;
 }
 
-.js_tabla_pagination > p:nth-child(2n+1):hover {
+.js_tabla_controls > div > p:nth-child(3) {
+    left: 1.9em;
+}
+
+.js_tabla_controls > div > p:nth-child(2n+1):hover {
+    background: rgb(220, 220, 220);
     border: solid 1px rgb(21, 23, 24);
 }
 
-.js_tabla_pagination > p:nth-child(2n+1):active {
-    background: rgb(235, 235, 235);
+.js_tabla_controls > div > p:nth-child(2n+1):active {
+    background: rgb(185, 185, 185);
 }
