@@ -100,7 +100,7 @@ Columns requiere los objetos por columna con la siguiente estructura:
 	\hline
 	visible & boolean & Muestra la columna configurada como id o argumento. \\
 	\hline
-	edit & boolean & Permite modificar el valor de la celda. \\
+	editable & boolean & Permite modificar el valor de la celda. \\
 	\hline
 \end{tabular}
 \\
@@ -114,8 +114,8 @@ Columns requiere los objetos por columna con la siguiente estructura:
 			0: { name: "id", id: true },
 			1: { name: "nombre", size: "10em" },
 			2: { name: "edad", size: "2em", align: "center" },
-			3: { name: "salario", size: "5em", align: "right", edit: true },
-			4: { name: "estado", size: "3em", argument: true, visible: true }
+			3: { name: "estado", size: "3em", argument: true, visible: true },
+			4: { name: "salario", size: "5em", align: "right", editable: true }
 		}		
 	};
 \end{lstlisting}
@@ -225,7 +225,7 @@ La clase cuenta con 3 eventos disponibles \textbf{onEdit}, \textbf{onScroll} y \
 	\hline
 	onScroll & callbackScroll & Su ejecución se realizará al llegar al final del scroll. Funcionalidad útil si se requiere cargar datos extra. \\
 	\hline
-	onPagination & pagination & La función se ejecuta al intentar paginar la tabla, dicha función recibe un objeto como argumento:
+	onPagination & pagination & La función se ejecuta al intentar paginar la tabla y se inactiva para evitar problemas, utilice commit o rollback para activarla; dicha función recibe un objeto como argumento:
 		\begin{tabular}{|m{2cm}|m{2cm}|m{4.9cm}|}
 			\hline
 			Argumento & Tipo & Descripción \\
@@ -258,7 +258,7 @@ La clase cuenta con 3 eventos disponibles \textbf{onEdit}, \textbf{onScroll} y \
 
 	\item \textbf{setDeleteTime}: Configura el tiempo de duración para la eliminación de una fila.
 	
-	\item \textbf{deleteLine}: Elimina una fila, solicita un argumento que puede ser el HTMLElement del objeto a eliminar o el id de la fila.
+	\item \textbf{deleteLine}: Elimina una fila, solicita un argumento que puede ser el HTMLElement del objeto a eliminar o el id de la fila, es posible pasar un callback que será ejecutado luego de la eliminación de la fila.
 	
 	\item \textbf{clear}: Limpia las filas mostradas.
 	
