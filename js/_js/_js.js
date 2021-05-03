@@ -2,9 +2,9 @@
 /*
  * FECHA: 2018/10/15
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jualesac@yahoo.com
+ * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
  * TÍTULO: _js.js
- * VERSIÓN: 1.8.2 (Versión a la última actualización)
+ * VERSIÓN: 1.8.0 (Versión a la última actualización)
  *
  * Descripción: Librería de funciones _js.
  *
@@ -140,6 +140,16 @@
         }
     });
 
+    protoHtml.setProperties = protoList.setProperties = fn (function (json) {
+        checkInstance (json, Object, "Object");
+
+        let property;
+
+        for (property in json) {
+            this[property] = json[property];
+        }
+    });
+
     protoHtml.clone = protoList.clone = fn (function (callback, boolChild) {
         if (typeof (callback) !== "function") {
             boolChild = callback;
@@ -159,10 +169,23 @@
     });
 
     protoHtml.appendTo = protoList.appendTo = fn (function (parent) {
-        parent = (parent instanceof HTMLElement) ? parent : js(parent);
+        parent = js(parent);
 
         parent.appendChild (this);
     });
+
+    protoHtml.currentChildNumber = function () {
+        let parent = this.parentNode;
+        let i;
+
+        for (i in parent.children) {
+            if (this == parent.children[i]) {
+                break;
+            }
+        }
+
+        return i;
+    };
 
     protoHtml.replace = fn (function (oldObj) {
         let obj;
