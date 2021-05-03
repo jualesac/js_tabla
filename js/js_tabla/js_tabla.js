@@ -361,7 +361,10 @@ var JS_TABLA = {
             tr = (tr instanceof HTMLElement) ? tr : _js(`#${Id}_lines > tr[id="${tr}"]`);
             callback = callback || function () {};
 
-            if (tr == null) { return; }
+            if (
+                tr == null
+                || tr.parentNode.id != `${Id}_lines`
+            ) { return; }
 
             if (tr.currentChildNumber () == 0 && tr.parentNode.children.length > 1) {
                 let row1 = _js(`#${Id}_lines > tr:first-child > td`);
