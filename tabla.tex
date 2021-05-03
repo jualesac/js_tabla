@@ -1,5 +1,5 @@
 %
-% FECHA: 2020-11-14
+% FECHA: 2021-05-02
 % AUTOR: Julio Alejandro Santos Corona
 % CORREO: jualesac@yahoo.com
 % TÍTULO: tabla.tex
@@ -13,9 +13,9 @@
 \usepackage{listings}
 \usepackage{anysize}
 \usepackage{colortbl}
-\title{TABLA v.1.2}
+\title{TABLA v.1.8}
 \author{Julio Alejandro Santos Corona}
-\date{14 de noviembre de 2020}
+\date{02 de mayo de 2021}
 
 \marginsize{2.5cm}{2.5cm}{0cm}{1.5cm}
 
@@ -109,7 +109,7 @@ Columns requiere los objetos por columna con la siguiente estructura:
 		colnameAlign: true,
 		limitLines: true,
 		pagination: false,
-		callbackScroll, true,
+		callbackScroll: true,
 		columns: {
 			0: { name: "id", id: true },
 			1: { name: "nombre", size: "10em" },
@@ -159,7 +159,7 @@ para imprimir las filas bastará con utilizar el método \textbf{lines}, dicho m
 	\hline
 	callback & function & Si & Función que se ejecutará por cada fila creada, recibe 2 argumentos, \textbf{line} y \textbf{argments}. \\
 	\hline
-	add & boolean & Si & \textbf{False}(default): La tabla se limpia antes de insertar los valores de data. \textbf{True}: Los valores son agregados inmediatamente abajo de los existentes. \\
+	include & boolean & Si & \textbf{False}(default): La tabla se limpia antes de insertar los valores de data. \textbf{True}: Los valores son agregados inmediatamente abajo de los existentes. \\
 	\hline
 \end{tabular}
 \\\\\\
@@ -190,6 +190,8 @@ El método \textbf{lines} tiene la posibilidad de ejecutar una función por cada
 	argments & object & En caso de haber configurado columnas como argument este objeto contendrá los valores con el nombre configurado en \textbf{name}. \\
 	\hline
 \end{tabular}
+\\\\\\
+adicional las líneas son construidas incluyendo la propiedad tblProperties con los argumentos de la fila.
 
 \newpage
 Ejemplo:
@@ -219,22 +221,26 @@ La clase cuenta con 3 eventos disponibles \textbf{onEdit}, \textbf{onScroll} y \
 	\hline
 	\rowcolor{black}\textcolor{white}{Método} & \textcolor{white}{Requerimiento} & \textcolor{white}{Descripción} \\
 	\hline
-	onEdit & edit & La función se ejecuta al cambiar el valor de una celda configurada como editable. La función no se ejecutará si se oprime la tecla \textbf{Escape} o si el valor editado resulta igual al original. Adicionalmente el callback recibe dos argumentos HTMLElement la línea y la celda modificada. \\
+	onEdit & edit & La función se ejecuta al cambiar el valor de una celda configurada como editable. La función no se ejecutará si se oprime la tecla \textbf{Escape} o si el valor editado resulta igual al original. Adicionalmente el callback recibe tres argumentos la línea, la celda modificada (ambos HTMLElement) y el valor anterior. \\
 	\hline
 	onScroll & callbackScroll & Su ejecución se realizará al llegar al final del scroll. Funcionalidad útil si se requiere cargar datos extra. \\
 	\hline
-	onPagination & pagination & La función se ejecutar al intentar paginar la tabla, dicha función recibe un objeto como argumento:
+	onPagination & pagination & La función se ejecuta al intentar paginar la tabla, dicha función recibe un objeto como argumento:
 		\begin{tabular}{|m{2cm}|m{2cm}|m{4.9cm}|}
 			\hline
 			Argumento & Tipo & Descripción \\
+			\hline
+			currentPage & number & Página actual. \\
+			\hline
+			nextPage & number & Página siguiente luego de la paginación. \\
 			\hline
 			start & number & Inicio del rango a obtener en la paginación. \\
 			\hline
 			end & number & Final del rango a obtener en la paginación. \\
 			\hline
-			page & number & Página siguiente luego de la paginación. \\
+			rollback & function & Método que activa la paginación sin actualizar página. \\
 			\hline
-			update & function & Método que actualiza el número de página. \\
+			commit & function & Método que actualiza el número de página. \\
 		\end{tabular} \\
 	\hline
 \end{tabular}
@@ -242,13 +248,15 @@ La clase cuenta con 3 eventos disponibles \textbf{onEdit}, \textbf{onScroll} y \
 \section{Métodos extra}
 
 \begin{itemize}
-	\item \textbf{limit}: Configura la cantidad de filas a mostrar; sólo aplica en la configuración general y en la paginación; requiere un argumento number mayor a 0.
+	\item \textbf{setLimit}: Configura la cantidad de filas a mostrar; sólo aplica en la configuración general y en la paginación; requiere un argumento number mayor a 0.
+
+	\item \textbf{getLimit}: Obtiene el límite de filas configurado.
 	
 	\item \textbf{getCols}: Obtiene la cantidad de columnas configuradas.
 	
 	\item \textbf{getRows}: Obtiene la cantidad de filas mostradas.
-	
-	\item \textbf{getLimit}: Obtiene el límite de filas configurado.
+
+	\item \textbf{setDeleteTime}: Configura el tiempo de duración para la eliminación de una fila.
 	
 	\item \textbf{deleteLine}: Elimina una fila, solicita un argumento que puede ser el HTMLElement del objeto a eliminar o el id de la fila.
 	
