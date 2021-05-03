@@ -2,270 +2,262 @@
 /*
  * FECHA: 2019/03/06
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
+ * CORREO: jualesac@yahoo.com
  * TÍTULO: js_tabla.js
  *
  * Descripción: Gadget para la creación de tablas.
  *
  * FECHA: 2020/11/02
  * UPGRADE: Mejora y ampliación de funcionalidad
+ * 
+ * FECHA: 2021/05/02
+ * UPGRADE: Ahora se crean tablas con tag table.
 */
 
 var JS_TABLA = {
-    SKULL: function (width, height, id) {
-        let config = {
+    properties: function () {
+        this.config = {
             callbackScroll: 0,
-            colnameAlign: 1,
+            colnameAlign: 0,
             limitLines: 0,
             pagination: 0,
             columns: {}
-        };
+        },
 
-        let _table;
-        let _class;
-        let _width;
-        let _cols = 0;
-        let _rows = 0;
-        let _limit = 30;
-        let _valEdit;
-        let _callbackEdit = function () {};
-        let _callbackScroll = function () {};
+        this.limit = 30;
+        this.cols = 0;
+        this.rows = 0;
+        this.deleteTime = 500;
+
+        this.page = 0;
+    },
+
+    skull: function (Width, Height, Id) {
+        let prop = new JS_TABLA.properties ();
+        let _config = prop.config;
+
+        let _extraWidth = 19;
+
+        let table = _js(Id).setAttributes ({ style: `width: ${Width}; height: ${Height};` });
+        let _jsClass = table.getAttribute ("class");
+        
+        let _callbackOnEdit = function () {};
+        let _callbackOnScroll = function () {};
         let _scrollActive = 0;
+        let _valueOnEdit;
 
-        _table = _js(id);
-        _class = _table.className;
-        _width = 19;
+        createTableTag ("columns", table);
+        createTableTag ("lines", table, true);
+        _js.createElement ("div").setAttributes ({ id: `${Id}_controls` }).appendTo (table);
 
-        _table.style.width = width;
-        _table.style.height = height;
+        _js.createElement ("tr").appendTo (`${Id}_columns`);
+        table = undefined;
 
-        _js.createElement ("div").appendTo (_table);
-        
-        _js.createElement ("ul").setAttributes ({
-            class: `${_class}_columns`,
-            id: `${id}_columns`
-        }).appendTo (_table.firstChild);
-        
-        _js.createElement ("div").setAttributes ({
-            class: `${_class}_lines`,
-            id: `${id}_lines`
-        }).appendTo (_table.firstChild);
-
-
-        this.limit = function (lim) {
-            if (typeof (lim) != "number" && lim > 0) { throw new TypeError ("Se esperaba un number mayor a 0 como argumento"); }
-
-            _limit = lim;
+        this.getProperties = function () {
+            return prop;
         };
-
-        this.setConfig = function (_config) {
-            if (typeof (_config) != "object") { throw TypeError ("Se esperaba un objeto"); }
-
-            config = _config;
-
-            _table.style["grid-template-rows"] = "";
-
-            this.reset ();
-
-            if (_config.pagination) { pagination (); }
-
-            setColumns ();
-        };
-
-        this.getCols = function () { return _cols; };
-
-        this.getRows = function () { return _rows; };
-
-        this.getLimit = function () { return _limit; }
 
         this.reset = function () {
-            _js(`${id}_columns`).setAttributes ({ style: "" }).textContent = "";
-            _js(`${id}_lines`).setAttributes ({ style: "" }).textContent = "";
+            _js(`${Id}_columns`).textContent = "";
+            _js(`${Id}_lines`).textContent = "";
+            _js(`${Id}_controls`).textContent = "";
+            _js(`#${Id} > div:nth-child(2)`).rmEvent ("scroll", scroll);
 
-            if (_table.children[1] != undefined) { _table.removeChild (_table.children[1]); }
+            _config = prop.config;
 
-            _rows = 0;
-            _cols = 0;
+            _js.createElement ("tr").appendTo (`${Id}_columns`);
+            
+            prop.cols = 0;
+            prop.rows = 0;
+            prop.page = 0;
         };
 
         this.clear = function () {
-            _js(`${id}_lines`).textContent = "";
-            if (_js(`${id}_pag_num`) != null) { _js(`${id}_pag_num`).textContent = 0; }
-            _rows = 0;
+            _js(`${Id}_lines`).textContent = "";
+            
+            prop.rows = 0;
+            prop.page = 0;
+
+            if (_config.pagination) {
+                _js(`${Id}_ctrl_numpage`).textContent = 0;
+            }
         };
+
+        this.setConfig = function (config) {
+            if (typeof (config) != "object") { throw new ErrorType ("Se esperaba un objeto"); }
+            
+            this.reset ();
+
+            _config = config;
+            
+            if (_config.callbackScroll) { _js(`#${Id} > div:nth-child(2)`).event ("scroll", scroll); }
+
+            createColumnsTable ();
+            createPaginationControls ();
+        };
+
+        this.getConfig = function () { return _config; };
 
         this.onEdit = function (callback) {
             if (typeof (callback) != "function") { throw new TypeError ("Se esperaba una función como argumento"); }
 
-            _callbackEdit = callback;
+            _callbackOnEdit = callback;
         };
 
         this.onScroll = function (callback) {
             if (typeof (callback) != "function") { throw new TypeError ("Se esperaba una función como argumento"); }
-    
-            _callbackScroll = callback;
+
+            _callbackOnScroll = callback;
         };
 
-        this.lines = function (data, callback, add) {
+        this.createRowTable = function (data, callback, include) {
+            if (Object.keys (_config.columns).length == 0) { return; }
+
             if (typeof (callback) === "boolean") {
-                add = callback;
+                include = callback;
                 callback = undefined;
             }
 
             data = data || {};
             callback = callback || function () {};
-            add = add || false; 
+            include = include || false;
 
-            let lines = _js.createElement ("div").setAttributes ({
-                class: `${_class}_lines`,
-                style: `width: ${_js(`${id}_lines`).style.width};`,
-                id: `${id}_lines`
-            });
+            let columns = _js(`${Id}_lines`);
+            let tbody = columns.clone (false);
             let attributes = {};
             let argments = {};
-            let line, c;
 
-            for (let row in data) {
-                if (config.limitLines && (_rows == _limit)) { break; }
+            let tr;
+            let d;
+            let c;
 
-                line = _js.createElement ("ul").appendTo (lines);
-                c = 0;
+            if (!include) { prop.rows = 0; }
 
-                for (let col in data[row]) {
-                    if (config.columns[c].id) {
-                        line.id = data[row][col];
-                    } else if (config.columns[c].argument) {
-                        argments[config.columns[c].name.replace (/\s/g, "_").trim ()] = data[row][col];
+            for (d in data) {
+                if ((_config.limitLines || _config.pagination) && prop.rows == prop.limit) { break; }
+
+                tr = _js.createElement ("tr").appendTo (tbody);
+
+                for (c in data[d]) {
+                    if (_config.columns[c].id) {
+                        tr.id = data[d][c];
                     }
 
-                    if (skipCol (config.columns[c])) { c++; continue; }
+                    if (_config.columns[c].argument) {
+                        argments[_config.columns[c].name.replace (/\s/g, "_").trim ()] = data[d][c];
+                    }
 
-                    attributes.style = `width: ${(config.columns[c].size || "2em")}; ${(config.columns[c].align != undefined) ? ("text-align: " + config.columns[c].align + ";") : ""}`.trim ();
-                    if (config.columns[c].edit) { attributes.class = `${_class}_edit`; }
+                    if (isIdOrArgumentHidden (_config.columns[c])) { continue; }
+
+                    attributes.style = `${(prop.rows <= 0 ? `width: ${(_config.columns[c].size) || "2em"}; ` : "")} ${(_config.columns[c].align ? `text-align: ${_config.columns[c].align};` : "")}`.trim ();
+                    if (_config.columns[c].editable) {
+                        attributes.class = `${_jsClass}_edit`;
+                    }
 
                     _js.createElement ("span").appendTo (
-                        _js.createElement ("li").setAttributes (attributes).appendTo (line)
-                    ).textContent = data[row][col];
+                        _js.createElement ("td").setAttributes (attributes).setProperties ({ editable: (_config.columns[c].editable || 0) }).appendTo (tr)
+                    ).textContent = data[d][c];
 
                     attributes = {};
-                    c++;
                 }
 
-                callback (line, argments);
+                tr.tblProperties = argments;
 
-                if (add) { _table.firstChild.childNodes[1].appendChild (line); }
-                _rows++;
-            }
+                callback (tr, argments);
 
-            if (!add) { _table.firstChild.replaceChild (lines, _table.firstChild.childNodes[1]); }
-            
-            if (_js(`${id}_pag_num`) && Number (_js(`${id}_pag_num`).textContent) == 0) { _js(`${id}_pag_num`).textContent = 1; }
-
-            if (config.callbackScroll) { _js(`${id}_lines`).event ("scroll", scroll); }
-            _js(`${id}_lines`).event ("click", edit);
-        };
-
-        this.deleteLine = function (ul) {
-            ul = (typeof (ul) == "string" || typeof (ul) == "number") ? _js(`#${id}_lines > ul[id="${ul}"]`) : ul;
-
-            if (ul == null) { return; }
-
-            setTimeout (function () {
-                if (ul.parentNode != null) {
-                    ul.parentNode.removeChild (ul);
-                }
-            }, 500);
-
-            ul.style.opacity = 0;
-            ul.style["max-height"] = 0;
-            _rows--;
-        };
-
-        function setColumns () {
-            let columns = config.columns;
-            let objCol = _js(`${id}_columns`);
-            let width = _width;
-
-            for (let i in columns) {
-                if (skipCol (columns[i])) { continue; }
+                if (include) { columns.appendChild (tr); }
                 
-                _js.createElement ("span").appendTo (_js.createElement ("li").setAttributes ({
-                    style: `width: ${(columns[i].size || "2em")}; ${(columns[i].align != undefined && config.colnameAlign) ? ("text-align: " + columns[i].align + ";") : ""}`.trim ()
-                }).appendTo (objCol)).textContent = columns[i].name.trim () || "";
-
-                width += Number (objCol.lastChild.clientWidth);
-                _cols++;
+                prop.rows++;
             }
 
-            objCol.style.width = _js(`${id}_lines`).style.width = `${width}px`;
+            if (!include) { tbody.replace (columns); }
+            if (_config.pagination && prop.page == 0) {
+                _js(`${Id}_ctrl_numpage`).textContent = 1;
+                prop.page = 1;
+            };
+
+            _js(`${Id}_lines`).event ("click", edit);
+        };
+
+        function createTableTag (suf, appendTo, boolBody) {
+            boolBody = boolBody || false;
+
+            let div = _js.createElement ("div");
+            let table = _js.createElement ("table").appendTo (div);
+
+            _js.createElement (boolBody ? "tbody" : "thead").setAttributes ({
+                id: `${Id}_${suf}`,
+                class: `${_jsClass}_${suf}`
+            }).appendTo (table);
+
+            div.appendTo (appendTo);
         }
 
-        function pagination () {
-            let div;
+        function createPaginationControls () {
+            if (!_config.pagination) {
+                _js(`${Id}_controls`).setAttribute ("class", "");
+                return;
+            }
 
-            div = _js.createElement ("div").setAttributes ({
-                class: `${_class}_pagination`,
-                id: `${id}_pagination`
-            }).appendTo (_table);
-
-            _js.createElement ("p").setAttributes ({
-                class: `${_class}_pag_back`,
-                id: `${id}_pag_back`
-            }).appendTo (div).innerText = "◄";
+            let div = _js.createElement ("div");
 
             _js.createElement ("p").setAttributes ({
-                id: `${id}_pag_num`
-            }).appendTo (div).innerText = 0;
-
+                id: `${Id}_ctrl_back`,
+                class: `${_jsClass}_ctrl_back`
+            }).appendTo (div).textContent = "◄";
+            
             _js.createElement ("p").setAttributes ({
-                class: `${_class}_pag_next`,
-                id: `${id}_pag_next`
-            }).appendTo (div).innerText = "►";
+                id: `${Id}_ctrl_numpage`,
+                class: `${_jsClass}_ctrl_numpage`
+            }).appendTo (div).textContent = "0";
+            
+            _js.createElement ("p").setAttributes ({
+                id: `${Id}_ctrl_next`,
+                class: `${_jsClass}_ctrl_next`
+            }).appendTo (div).textContent = "►";
+            
+            div.appendTo (_js(Id).children[2].setAttributes ({
+                class: `${_jsClass}_controls`
+            }));
 
-            _table.style["grid-template-rows"] = `auto 3em`;
+            prop.page = 0;
         }
 
-        function edit (evnt) {
-            let tag = evnt.target.tagName;
-            let obj = (tag == "LI") ? evnt.target : ((tag == "SPAN") ? evnt.target.parentNode : undefined);
-            let input;
+        function createColumnsTable () {
+            let columns = _config.columns;
+            let htmlColumns = _js(`${Id}_columns`);
+            let width = 0;
+            let tr;
+            let td;
+            let i;
 
-            if (!obj || !/_edit$/.test (obj.className)) { return; }
+            htmlColumns.textContent = "";
 
-            input = _js.createElement ("input").setAttributes ({
-                class: `${obj.className}_on`
-            })
+            tr = _js.createElement ("tr").appendTo (htmlColumns);
+            td;
 
-            input.value = obj.childNodes[0].textContent.trim ();
-            _valEdit = input.value;
+            for (i in columns) {
+                if (isIdOrArgumentHidden (columns[i])) { continue; }
 
-            obj.rmStyle (`${_class}_edit`);
-            obj.replaceChild (input, obj.childNodes[0]);
+                td = _js.createElement ("td").setAttributes ({
+                    style: `width: ${(columns[i].size || "2em")}; ${columns[i].align && _config.colnameAlign ? `text-align: ${columns[i].align};` : ""}`.trim ()
+                }).appendTo (tr);
 
-            input.event ("blur", setEdit);
-            input.event ("keydown", setEdit);
-            input.focus ();
+                _js.createElement ("span").appendTo (td).textContent = (columns[i].name.trim () || "");
+
+                width += Number (htmlColumns.firstChild.lastChild.clientWidth);
+                prop.cols++;
+            }
+
+            htmlColumns.firstChild.style.width = _js(Id).children[1].style.width = `${width + _extraWidth}px`;
         }
 
-        function setEdit (evnt) {
-            if (evnt.key && (evnt.key !== "Enter" && evnt.key !== "Escape")) { return; }
+        function isIdOrArgumentHidden (columnConfig) {
+            if ((columnConfig.id || columnConfig.argument) && !columnConfig.visible) {
+                return true;
+            }
 
-            let li = this.parentNode;
-            let span = _js.createElement ("span");
-
-            this.rmEvent ("blur", setEdit);
-            this.rmEvent ("keydown", setEdit);
-
-            if (evnt.key && evnt.key === "Escape") { this.value = _valEdit; }
-
-            span.textContent = this.value.trim ();
-
-            li.addStyle (`${_class}_edit`);
-            li.replaceChild (span, this);
-
-            if (this.value != _valEdit) { _callbackEdit (li.parentNode, span); }
-
-            _valEdit = undefined;
+            return false;
         }
 
         function scroll (evnt) {
@@ -282,70 +274,145 @@ var JS_TABLA = {
                     that.style.overflow = "";
                 }, 800);
 
-                _callbackScroll ();
+                _callbackOnScroll ();
             }
         }
 
-        function skipCol (column) {
-            if ((column.id && !column.visible) || (column.argument && !column.visible)) {
-                return true;
-            } else {
-                return false;
-            }
+        function edit (evnt) {
+            let tag = evnt.target.tagName;
+            let obj = (tag == "TD") ? evnt.target : ((tag == "SPAN") ? evnt.target.parentNode : undefined);
+            let input;
+
+            if (!obj || !/_edit$/.test (obj.className)) { return; }
+
+            input = _js.createElement ("input").setAttributes ({
+                class: `${obj.className}_on`
+            });
+
+            input.value = obj.firstChild.textContent.trim ();
+            _valueOnEdit = input.value;
+
+            obj.rmStyle (`${_jsClass}_edit`);
+            obj.replaceChild (input, obj.firstChild);
+
+            input.event ("blur", setValueOnEdit);
+            input.event ("keydown", setValueOnEdit);
+            input.focus ();
+        }
+
+        function setValueOnEdit (evnt) {
+            if (evnt.key && (evnt.key !== "Enter" && evnt.key !== "Escape")) { return; }
+
+            this.rmEvent ("blur", setValueOnEdit);
+            this.rmEvent ("keydown", setValueOnEdit);
+
+            let td = this.parentNode.addStyle (`${_jsClass}_edit`);
+            let span = _js.createElement ("span");
+
+            if (evnt.key && evnt.key === "Escape") { this.value = _valueOnEdit; }
+
+            span.textContent = this.value.trim ();
+            
+            td.replaceChild (span, this);
+
+            if (this.value.trim () != _valueOnEdit) { _callbackOnEdit (td.parentNode, span, _valueOnEdit); }
+
+            _valueOnEdit = undefined;
         }
     },
 
-    main: function (width, height, id) {
-        id = id || "js_tabla";
-        
-        JS_TABLA.SKULL.call (this, width, height, id);
+    main: function (Width, Height, Id) {
+        Id = Id || "js_tabla";
 
-        let _class = _js(id).className;
-        let _callbackPaginator = function () {};
-        let _paginatorActive = 0;
-        let that = {
-            getLimit: this.getLimit,
-            getRows: this.getRows
+        let skull = new JS_TABLA.skull (Width, Height, Id);
+        let prop = skull.getProperties ();
+
+        let _callbackOnPagination = function () {};
+        let _paginationActive = 0;
+
+        this.reset = skull.reset;
+        this.clear = skull.clear;
+        this.setConfig = skull.setConfig;
+        this.lines = skull.createRowTable;
+        this.onEdit = skull.onEdit;
+        this.onScroll = skull.onScroll;
+
+        this.getCols = function () { return prop.cols; };
+        this.getRows = function () { return prop.rows; };
+        this.getLimit = function () { return prop.limit; };
+
+        this.setLimit = function (limit) {
+            if (typeof (limit) != "number" || limit <= 0) { throw new TypeError ("Se esperaba un number mayor a 0 como argumento"); }
+
+            prop.limit = limit;
+        };
+
+        this.setDeleteTime = function (miliseconds) {
+            if (typeof (miliseconds) != "number") { throw new ErrorType ("Se esperaba un entero como argumento"); }
+
+            if (miliseconds <= 10) { miliseconds = 10; }
+            if (miliseconds >= 500) { miliseconds = 500; }
+
+            prop.deleteTime = miliseconds;
+        };
+
+        this.deleteLine = function (tr, callback) {
+            tr = (tr instanceof HTMLElement) ? tr : _js(`#${Id}_lines > tr[id="${tr}"]`);
+            callback = callback || function () {};
+
+            if (tr == null) { return; }
+
+            setTimeout (function () {
+                if (tr.parentNode == null) { return; }
+                
+                tr.parentNode.removeChild (tr);
+                callback ();
+            }, prop.deleteTime);
+
+            tr.style.opacity = 0;
+            prop.rows--;
         };
 
         this.onPagination = function (callback) {
             if (typeof (callback) != "function") { throw new TypeError ("Se esperaba una función como argumento"); }
 
-            _callbackPaginator = callback;
+            _callbackOnPagination = callback;
 
-            if (_js(`${id}_pagination`)) {
+            if (skull.getConfig ().pagination) {
                 _js(`
-                #${id}_pag_back,
-                #${id}_pag_next
-            `).event ("click", pagination);
+                    #${Id}_ctrl_back,
+                    #${Id}_ctrl_next
+                `).event ("click", pagination);
             }
         };
 
         function pagination () {
-            let page = {
-                limit: Number (that.getLimit ()),
-                rows: Number (that.getRows ()),
-                number: Number (_js(`${id}_pag_num`).textContent)
-            };
+            if (
+                _paginationActive
+                || prop.page == 0
+                || (/_back$/.test (this.id) && prop.page == 1)
+                || (/_next$/.test (this.id) && prop.rows < prop.limit)
+            ) { return; }
 
-            if (_paginatorActive || page.number == 0 || (/_back/.test (this.id) && page.number == 1) || (/_next/.test (this.id) && page.rows < page.limit)) { return; }
+            let page = prop.page;
 
-            if (/_next/.test (this.id)) { page.number++; } else { page.number--; }
+            _paginationActive = 1;
 
-            _paginatorActive = 1;
+            if (/_next$/.test (this.id)) { page++; } else { page--; }
 
-            _callbackPaginator ({
-                start: ((page.number - 1) * page.limit),
-                end: ((page.number * page.limit) - 1),
-                page: page.number,
-                update: function () {
-                    _js(`${id}_pag_num`).textContent = page.number
+            _callbackOnPagination ({
+                currentPage: prop.page,
+                nextPage: page,
+                start: ((prop.page - 1) * prop.limit),
+                end: ((prop.page * prop.limit) - 1),
+                rollback: function () { _paginationActive = 0; },
+                commit: function () {
+                    prop.page = page;
+                    _paginationActive = 0;
+
+                    _js(`${Id}_ctrl_numpage`).textContent = page;
                 }
             });
-
-            setTimeout (function () {
-                _paginatorActive = 0;
-            }, 333);
         }
     }
 };
