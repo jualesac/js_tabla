@@ -1,4 +1,3 @@
-"use strict";
 /*
  * FECHA: 2019/03/06
  * AUTOR: Julio Alejandro Santos Corona
@@ -13,6 +12,8 @@
  * FECHA: 2021/05/02
  * UPGRADE: Ahora se crean tablas con tag table.
 */
+
+"use strict";
 
 var JS_TABLA = {
     properties: function () {
@@ -123,7 +124,7 @@ var JS_TABLA = {
             include = include || false;
 
             let columns = _js(`${Id}_lines`);
-            let tbody = columns.clone (false);
+            let tbody = columns.cloneNode (false);
             let attributes = {};
             let argments = {};
 
@@ -361,6 +362,16 @@ var JS_TABLA = {
             callback = callback || function () {};
 
             if (tr == null) { return; }
+
+            if (tr.currentChildNumber () == 0 && tr.parentNode.children.length > 1) {
+                let row1 = _js(`#${Id}_lines > tr:first-child > td`);
+                let row2 = _js(`#${Id}_lines > tr:nth-child(2) > td`);
+                let n = 0;
+
+                for (n; n < row1.length; n++) {
+                    row2[n].style.width = row1[n].style.width;
+                }
+            }
 
             setTimeout (function () {
                 if (tr.parentNode == null) { return; }
