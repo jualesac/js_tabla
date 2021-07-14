@@ -126,7 +126,6 @@ var JS_TABLA = {
             let columns = _js(`${Id}_lines`);
             let tbody = columns.cloneNode (false);
             let attributes = {};
-            let argments = {};
 
             let tr;
             let d;
@@ -135,6 +134,8 @@ var JS_TABLA = {
             if (!include) { prop.rows = 0; }
 
             for (d in data) {
+                let argments = {};
+
                 if ((_config.limitLines || _config.pagination) && prop.rows == prop.limit) { break; }
 
                 tr = _js.createElement ("tr").appendTo (tbody);
