@@ -2,7 +2,7 @@
 /*
  * FECHA: 2018/10/15
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jasantos@santander.com.mx | jualesac@yahoo.com
+ * CORREO: julisantos@santander.com.mx | jualesac@yahoo.com
  * TÍTULO: _js.js
  * VERSIÓN: 1.8.0 (Versión a la última actualización)
  *
@@ -187,6 +187,10 @@
         return i;
     };
 
+    protoHtml.findParent = function (parentName) {
+        return findParentElement (this, parentName);
+    };
+
     protoHtml.replace = fn (function (oldObj) {
         let obj;
 
@@ -308,6 +312,19 @@
             }
         }
     }, false);
+
+    function findParentElement (obj, element) {
+        let name = obj.parentElement.tagName;
+        let o;
+
+        if (name != element.toUpperCase()) {
+            o = findParentElement (obj.parentElement, element);
+        } else {
+            o = obj.parentElement;
+        }
+
+        return o;
+    }
     //Constructor de métodos
     function fn (callback, retur) {
         retur = (retur === true || retur === undefined) ? true : false;
