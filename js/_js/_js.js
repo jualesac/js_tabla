@@ -187,8 +187,10 @@
         return i;
     };
 
-    protoHtml.findParent = function (parentName) {
-        return findParentElement (this, parentName);
+    protoHtml.findParent = function (parentName, strct) {
+        strct = strct || true;
+
+        return findParentElement (this, parentName, strct);
     };
 
     protoHtml.replace = fn (function (oldObj) {
@@ -313,9 +315,15 @@
         }
     }, false);
 
-    function findParentElement (obj, element) {
+    function findParentElement (obj, element, strct) {
+        strct = strct || true;
+
         let name = obj.parentElement.tagName;
         let o;
+
+        if (obj.tagName == element.toUpperCase() && !strct) {
+            return obj;
+        }
 
         if (name != element.toUpperCase()) {
             o = findParentElement (obj.parentElement, element);
