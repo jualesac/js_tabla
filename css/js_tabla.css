@@ -1,7 +1,7 @@
 /*
  * FECHA: 2021/05/01
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: jualesac@yahoo.com
+ * CORREO: julisantos@santander.com.mx | jualesac@yahoo.com
  * TÍTULO: js_tabla.css
  *
  * Descripción: Estilos de la tabla.
@@ -37,6 +37,7 @@
 .js_tabla > div:nth-child(2) {
     overflow-y: auto;
     overflow-x: hidden;
+    height: 95%;
 }
 
 .js_tabla_columns, .js_tabla_lines {
