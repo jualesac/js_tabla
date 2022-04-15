@@ -1,7 +1,7 @@
 /*
  * FECHA: 2021/05/01
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: julisantos@santander.com.mx | jualesac@yahoo.com
+ * CORREO: jualesac@yahoo.com
  * TÍTULO: js_tabla.js
  *
  * Descripción: Gadget para la creación de tablas.
