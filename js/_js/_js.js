@@ -2,7 +2,7 @@
 /*
  * FECHA: 2018/10/15
  * AUTOR: Julio Alejandro Santos Corona
- * CORREO: julisantos@santander.com.mx | jualesac@yahoo.com
+ * CORREO: jualesac@yahoo.com
  * TÍTULO: _js.js
  * VERSIÓN: 1.8.0 (Versión a la última actualización)
  *
