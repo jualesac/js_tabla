@@ -317,18 +317,15 @@
 
     function findParentElement (obj, element, strct) {
         strct = strct || true;
+        element = element.toUpperCase ();
 
         let name = obj.parentElement.tagName;
         let o;
 
-        if (obj.tagName == element.toUpperCase() && !strct) {
-            return obj;
-        }
-
-        if (name != element.toUpperCase()) {
-            o = findParentElement (obj.parentElement, element);
-        } else {
+        if (name == element || (obj.tagName == element && !strct)) {
             o = obj.parentElement;
+        } else {
+            o = findParentElement (obj, element);
         }
 
         return o;
