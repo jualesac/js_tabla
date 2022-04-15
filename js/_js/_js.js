@@ -322,7 +322,11 @@
         let name = obj.parentElement.tagName;
         let o;
 
-        if (name == element || (obj.tagName == element && !strct)) {
+        if (obj.tagName == element && !strct) {
+            return obj;
+        }
+
+        if (name == element) {
             o = obj.parentElement;
         } else {
             o = findParentElement (obj, element);
