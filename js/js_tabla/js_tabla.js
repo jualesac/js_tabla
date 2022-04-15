@@ -1,362 +1,427 @@
-"use strict";
 /*
- * FECHA: 2018/10/15
+ * FECHA: 2021/05/01
  * AUTOR: Julio Alejandro Santos Corona
  * CORREO: julisantos@santander.com.mx | jualesac@yahoo.com
- * TÍTULO: _js.js
- * VERSIÓN: 1.8.0 (Versión a la última actualización)
+ * TÍTULO: js_tabla.js
  *
- * Descripción: Librería de funciones _js.
- *
- * Reedición: 2019/03/25
- * Descripción: Se mejora el rendimiento y se amplía la biblioteca.
- *
- * Actualización: 2019/07/10
- * Descripción: Se crearon los métodos manejadores de atributos y
- *              cambiaron los nombres de algunos métodos.
- *
- * Actualización: 2019/12/31
- * Descripción: Se mejora la estructura y se crea un constructor
- *              de métodos.
- *              El método id pasa a ser el método principal al
- *              integrar en él la posibilidad de aceptar listas.
- *              Se permite la encadenación de métodos.
- *              Se eliminan métodos poco útiles.
- *
- * Actualización: 2020/04/18
- * Descripción: Se incorpora el uso de prototypos.
- *              Desaparece el método id, _js pasa a ser la
- *              entrada a métodos.
+ * Descripción: Gadget para la creación de tablas.
 */
 
-(function (clase) {
-    if (window._js == undefined) {
-        clase ();
-    }
-}) (function () {
-    let js = function (selector) {
-        let objHTML;
-        let qs;
-
-        if (arguments.length === 0) {
-            throw new Error ("Se esperaba un argumento");
-        }
-
-        if (selector instanceof Element) { return selector; }
-
-        qs = document.querySelectorAll (selector);
-
-        objHTML = (qs.length > 1) ? qs : (document.querySelector (selector)) ? document.querySelector (selector) : document.getElementById (selector);
-
-        if (objHTML === null) { return null; }
-
-        return objHTML;
-    };
-
-    js.createElement = function (element, ns) {
-        ns = ns || "";
-
-        checkType (element, "string");
-
-        let elmnt;
-
-        if (ns === "") {
-            elmnt = document.createElement (element);
-        } else {
-            elmnt = document.createElementNs (ns, element);
-        }
-
-        return elmnt;
-    };
-
-    let protoHtml = HTMLElement.prototype;
-    let protoList = NodeList.prototype;
-
-    protoHtml.event = protoList.event = fn (function (evnt, callback) {
-        this.addEventListener (evnt, callback);
-    }, false);
-
-    protoHtml.rmEvent = protoList.rmEvent = fn (function (evnt, callback) {
-        this.removeEventListener (evnt, callback);
-    }, false);
-
-    protoHtml.addStyle = protoList.addStyle = fn (function (style) {
-        checkType (style, "string");
-
-        let regExp = new RegExp (`(?:^| )${style}(?: |$)`);
-
-        if (!regExp.test (this.className)) {
-            this.className = (`${this.className} ${style}`).trim ();
-        }
-    });
-
-    protoHtml.rmStyle = protoList.rmStyle = fn (function (style) {
-        checkType (style, "string");
-
-        let regExp = new RegExp (`(?:^| )${style}(?: |$)`);
-
-        this.className = this.className.replace (regExp, "").trim ();
-    });
-
-    protoHtml.addrmStyle = protoList.addrmStyle = fn (function (style) {
-        checkType (style, "string");
-
-        let regExp = new RegExp (`(?:^| )${style}(?: |$)`);
-
-        if (regExp.test (this.className)) {
-            this.className = this.className.replace (regExp, "").trim ();
-        } else {
-            this.className = (`${this.className} ${style}`).trim ();
-        }
-    });
-
-    protoHtml.addrmStyleValue = protoList.addrmStyleValue = fn (function (property, value) {
-        checkType (property, "string");
-
-        let obj = this.style;
-
-        if (obj[property] === "" || !(obj[property])) {
-            obj[property] = value;
-        } else {
-            obj[property] = "";
-        }
-    });
-
-    protoHtml.setAttributes = protoList.setAttributes = fn (function (json) {
-        checkInstance (json, Object, "Object");
-
-        let attribute;
-
-        try {
-            for (attribute in json) {
-                this.setAttribute (attribute, json[attribute]);
-            }
-        } catch (error) {
-            if (json instanceof Array) {
-                throw new TypeError ("Se esperaba un Object como argumento");
-            }
-
-            throw new Error (error);
-        }
-    });
-
-    protoHtml.setProperties = protoList.setProperties = fn (function (json) {
-        checkInstance (json, Object, "Object");
-
-        let property;
-
-        for (property in json) {
-            this[property] = json[property];
-        }
-    });
-
-    protoHtml.clone = protoList.clone = fn (function (callback, boolChild) {
-        if (typeof (callback) !== "function") {
-            boolChild = callback;
-            callback = function () { return; };
-        }
-
-        boolChild = boolChild || false;
-
-        checkInstance (callback, Function, "Function");
-        checkType (boolChild, "boolean");
-
-        let clon = this.cloneNode (boolChild);
-
-        callback (clon);
-
-        this.parentNode.appendChild (clon);
-    });
-
-    protoHtml.appendTo = protoList.appendTo = fn (function (parent) {
-        parent = js(parent);
-
-        parent.appendChild (this);
-    });
-
-    protoHtml.currentChildNumber = function () {
-        let parent = this.parentNode;
-        let i;
-
-        for (i in parent.children) {
-            if (this == parent.children[i]) {
-                break;
-            }
-        }
-
-        return i;
-    };
-
-    protoHtml.findParent = function (parentName) {
-        return findParentElement (this, parentName);
-    };
-
-    protoHtml.replace = fn (function (oldObj) {
-        let obj;
-
-        obj = js(oldObj);
-
-        obj.parentNode.replaceChild (this, obj);
-    });
-
-    protoHtml.keyBlock = protoList.keyBlock = fn (function (rgExpBlock, callbackEnter) {
-        callbackEnter = callbackEnter || function () {};
-
-        checkInstance (this, HTMLElement, "HTMLElement");
-        checkInstance (callbackEnter, Function, "Function");
-
-        let special;
-        let regExp;
-
-        special = new RegExp ("Control|Arrow|Space|Backspace|Tab|Home|End|Delete|Insert|Dead|F[0-9]{1,2}");
-        regExp = new RegExp (`(?:${rgExpBlock})`);
-
-        this.addEventListener ("keydown", validate);
-        this.addEventListener ("keyup", gate);
-
-        function validate (evnt) {
-            let key;
-
-            key = evnt.key;
-
-            if (/Enter/.test (key)) {
-                lock.call (this);
-                callbackEnter ();
-                return;
-            }
-
-            if (regExp.test (key)) {
-                if (special.test (key)) {
-                    this.addEventListener ("blur", lock);
-                    this.removeEventListener ("keydown", validate);
-                } else {
-                    evnt.preventDefault ();
-                }
-            }
-        }
-
-        function gate (evnt) {
-            let key;
-
-            key = evnt.key;
-
-            if (special.test (key)) {
-                lock.call (this);
-            }
-        }
-
-        function lock () {
-            this.addEventListener ("keydown", validate);
-            this.removeEventListener ("blur", lock);
-
-            if (regExp.test (this.value)) {
-                this.value = this.value.split (regExp).join ("");
-            }
-        }
-    }, false);
-
-    protoHtml.structBlock = protoList.structBlock = fn (function (struct, callbackEnter) {
-        callbackEnter = callbackEnter || function () {};
-
-        checkInstance (this, HTMLElement, "HTMLElement");
-        checkInstance (callbackEnter, Function, "Function");
-
-        let special;
-        let regExp;
-
-        special = new RegExp ("Control|Arrow|Backspace|Tab|Home|End|Delete|Insert|Shift|F[0-9]{1,2}");
-        regExp = new RegExp (`^${struct}$`);
-
-        this.addEventListener ("keydown", validate);
-        this.addEventListener ("keyup", gate);
-
-        function validate (evnto) {
-            let key;
-            let value;
-
-            key = evnto.key;
-            value = this.value;
-
-            if (/Enter/.test (key)) {
-                lock.call (this);
-                callbackEnter ();
-                return;
-            }
-
-            if (!special.test (key)) {
-                if (!((regExp.test (value + key)) && (key.length === 1))) {
-                    evnto.preventDefault ();
-                }
-            } else {
-                this.addEventListener ("blur", lock);
-                this.removeEventListener ("keydown", validate);
-            }
-        }
-
-        function gate (evnto) {
-            let key;
-
-            key = evnto.key;
-
-            if (special.test (key)) {
-                lock.call (this);
-            }
-        }
-
-        function lock () {
-            this.addEventListener ("keydown", validate);
-            this.removeEventListener ("blur", lock);
-
-            if (!regExp.test (this.value)) {
-                this.value = "";
-            }
-        }
-    }, false);
-
-    function findParentElement (obj, element) {
-        let name = obj.parentElement.tagName;
-        let o;
-
-        if (name != element.toUpperCase()) {
-            o = findParentElement (obj.parentElement, element);
-        } else {
-            o = obj.parentElement;
-        }
-
-        return o;
-    }
-    //Constructor de métodos
-    function fn (callback, retur) {
-        retur = (retur === true || retur === undefined) ? true : false;
-
-        return function (...arg) {
-            if (this instanceof HTMLElement) {
-                callback.call (this, ...arg);
-            } else if (this instanceof NodeList) {
-                this.forEach (function (item) {
-                    callback.call (item, ...arg);
-                });
-            } else {
-                return null;
-            }
-
-            if (retur) {
-                return this;
+"use strict";
+
+var JS_TABLA = {
+    properties: function () {
+        this.config = {
+            callbackScroll: 0,
+            colnameAlign: 0,
+            limitLines: 0,
+            pagination: 0,
+            columns: {}
+        },
+
+        this.limit = 30;
+        this.cols = 0;
+        this.rows = 0;
+        this.deleteTime = 500;
+
+        this.page = 0;
+    },
+
+    skull: function (Width, Height, Id) {
+        let prop = new JS_TABLA.properties ();
+        let _config = prop.config;
+
+        let _extraWidth = 19;
+
+        let table = _js(Id).setAttributes ({ style: `width: ${Width}; height: ${Height};` });
+        let _jsClass = table.getAttribute ("class");
+        
+        let _callbackOnEdit = function () {};
+        let _callbackOnScroll = function () {};
+        let _scrollActive = 0;
+        let _valueOnEdit;
+
+        createTableTag ("columns", table);
+        createTableTag ("lines", table, true);
+        _js.createElement ("div").setAttributes ({ id: `${Id}_controls` }).appendTo (table);
+
+        _js.createElement ("tr").appendTo (`${Id}_columns`);
+        table = undefined;
+
+        this.getProperties = function () {
+            return prop;
+        };
+
+        this.reset = function () {
+            _js(`${Id}_columns`).textContent = "";
+            _js(`${Id}_lines`).textContent = "";
+            _js(`${Id}_controls`).textContent = "";
+            _js(`#${Id} > div:nth-child(2)`).rmEvent ("scroll", scroll);
+
+            _config = prop.config;
+
+            _js.createElement ("tr").appendTo (`${Id}_columns`);
+            
+            prop.cols = 0;
+            prop.rows = 0;
+            prop.page = 0;
+        };
+
+        this.clear = function () {
+            _js(`${Id}_lines`).textContent = "";
+            
+            prop.rows = 0;
+            prop.page = 0;
+
+            if (_config.pagination) {
+                _js(`${Id}_ctrl_numpage`).textContent = 0;
             }
         };
-    }
 
-    function checkInstance (obj, instance, alias) {
-        if (!(obj instanceof instance)) {
-            throw new TypeError (`Se esperaba un objeto ${alias} como argumento.`);
+        this.setConfig = function (config) {
+            if (typeof (config) != "object") { throw new ErrorType ("Se esperaba un objeto"); }
+            
+            this.reset ();
+
+            _config = config;
+            
+            if (_config.callbackScroll) { _js(`#${Id} > div:nth-child(2)`).event ("scroll", scroll); }
+
+            createColumnsTable ();
+            createPaginationControls ();
+        };
+
+        this.getConfig = function () { return _config; };
+
+        this.onEdit = function (callback) {
+            if (typeof (callback) != "function") { throw new TypeError ("Se esperaba una función como argumento"); }
+
+            _callbackOnEdit = callback;
+        };
+
+        this.onScroll = function (callback) {
+            if (typeof (callback) != "function") { throw new TypeError ("Se esperaba una función como argumento"); }
+
+            _callbackOnScroll = callback;
+        };
+
+        this.createRowTable = function (data, callback, include) {
+            if (Object.keys (_config.columns).length == 0) { return; }
+
+            if (typeof (callback) === "boolean") {
+                include = callback;
+                callback = undefined;
+            }
+
+            data = data || {};
+            callback = callback || function () {};
+            include = include || false;
+
+            let columns = _js(`${Id}_lines`);
+            let tbody = columns.cloneNode (false);
+            let attributes = {};
+
+            let tr;
+            let d;
+            let c;
+
+            if (!include) { prop.rows = 0; }
+
+            for (d in data) {
+                let argments = {};
+
+                if ((_config.limitLines || _config.pagination) && prop.rows == prop.limit) { break; }
+
+                tr = _js.createElement ("tr").appendTo (tbody);
+
+                for (c in data[d]) {
+                    if (_config.columns[c].id) {
+                        tr.id = data[d][c];
+                    }
+
+                    if (_config.columns[c].argument) {
+                        argments[_config.columns[c].name.replace (/\s/g, "_").trim ()] = data[d][c];
+                    }
+
+                    if (isIdOrArgumentHidden (_config.columns[c])) { continue; }
+
+                    attributes.style = `${(prop.rows <= 0 ? `width: ${(_config.columns[c].size) || "2em"}; ` : "")} ${(_config.columns[c].align ? `text-align: ${_config.columns[c].align};` : "")}`.trim ();
+                    if (_config.columns[c].editable) {
+                        attributes.class = `${_jsClass}_edit`;
+                    }
+
+                    _js.createElement ("span").appendTo (
+                        _js.createElement ("td").setAttributes (attributes).setProperties ({ editable: (_config.columns[c].editable || 0) }).appendTo (tr)
+                    ).textContent = data[d][c];
+
+                    attributes = {};
+                }
+
+                tr.tblProperties = argments;
+
+                callback (tr, argments);
+
+                if (include) { columns.appendChild (tr); }
+                
+                prop.rows++;
+            }
+
+            if (!include) { tbody.replace (columns); }
+            if (_config.pagination && prop.page == 0) {
+                _js(`${Id}_ctrl_numpage`).textContent = 1;
+                prop.page = 1;
+            };
+
+            _js(`${Id}_lines`).event ("click", edit);
+        };
+
+        function createTableTag (suf, appendTo, boolBody) {
+            boolBody = boolBody || false;
+
+            let div = _js.createElement ("div");
+            let table = _js.createElement ("table").appendTo (div);
+
+            _js.createElement (boolBody ? "tbody" : "thead").setAttributes ({
+                id: `${Id}_${suf}`,
+                class: `${_jsClass}_${suf}`
+            }).appendTo (table);
+
+            div.appendTo (appendTo);
+        }
+
+        function createPaginationControls () {
+            if (!_config.pagination) {
+                _js(`${Id}_controls`).setAttribute ("class", "");
+                return;
+            }
+
+            let div = _js.createElement ("div");
+
+            _js.createElement ("p").setAttributes ({
+                id: `${Id}_ctrl_back`,
+                class: `${_jsClass}_ctrl_back`
+            }).appendTo (div).textContent = "◄";
+            
+            _js.createElement ("p").setAttributes ({
+                id: `${Id}_ctrl_numpage`,
+                class: `${_jsClass}_ctrl_numpage`
+            }).appendTo (div).textContent = "0";
+            
+            _js.createElement ("p").setAttributes ({
+                id: `${Id}_ctrl_next`,
+                class: `${_jsClass}_ctrl_next`
+            }).appendTo (div).textContent = "►";
+            
+            div.appendTo (_js(Id).children[2].setAttributes ({
+                class: `${_jsClass}_controls`
+            }));
+
+            prop.page = 0;
+        }
+
+        function createColumnsTable () {
+            let columns = _config.columns;
+            let htmlColumns = _js(`${Id}_columns`);
+            let width = 0;
+            let tr;
+            let td;
+            let i;
+
+            htmlColumns.textContent = "";
+
+            tr = _js.createElement ("tr").appendTo (htmlColumns);
+            td;
+
+            for (i in columns) {
+                if (isIdOrArgumentHidden (columns[i])) { continue; }
+
+                td = _js.createElement ("td").setAttributes ({
+                    style: `width: ${(columns[i].size || "2em")}; ${columns[i].align && _config.colnameAlign ? `text-align: ${columns[i].align};` : ""}`.trim ()
+                }).appendTo (tr);
+
+                _js.createElement ("span").appendTo (td).textContent = (columns[i].name.trim () || "");
+
+                width += Number (htmlColumns.firstChild.lastChild.clientWidth);
+                prop.cols++;
+            }
+
+            htmlColumns.firstChild.style.width = _js(Id).children[1].style.width = `${width + _extraWidth}px`;
+        }
+
+        function isIdOrArgumentHidden (columnConfig) {
+            if ((columnConfig.id || columnConfig.argument) && !columnConfig.visible) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function scroll (evnt) {
+            if (_scrollActive && this.scrollTop >= (this.scrollTopMax - 5)) { return; }
+            if (_scrollActive && this.scrollTop < (this.scrollTopMax - 5)) { _scrollActive = 0; }
+
+            if (this.scrollTop == this.scrollTopMax && !_scrollActive) {
+                let that = this;
+
+                _scrollActive = 1;
+
+                this.style.overflow = "hidden";
+                setTimeout (function () {
+                    that.style.overflow = "";
+                }, 800);
+
+                _callbackOnScroll ();
+            }
+        }
+
+        function edit (evnt) {
+            let tag = evnt.target.tagName;
+            let obj = (tag == "TD") ? evnt.target : ((tag == "SPAN") ? evnt.target.parentNode : undefined);
+            let input;
+
+            if (!obj || !/_edit$/.test (obj.className)) { return; }
+
+            input = _js.createElement ("input").setAttributes ({
+                class: `${obj.className}_on`
+            });
+
+            input.value = obj.firstChild.textContent.trim ();
+            _valueOnEdit = input.value;
+
+            obj.rmStyle (`${_jsClass}_edit`);
+            obj.replaceChild (input, obj.firstChild);
+
+            input.event ("blur", setValueOnEdit);
+            input.event ("keydown", setValueOnEdit);
+            input.focus ();
+        }
+
+        function setValueOnEdit (evnt) {
+            if (evnt.key && (evnt.key !== "Enter" && evnt.key !== "Escape")) { return; }
+
+            this.rmEvent ("blur", setValueOnEdit);
+            this.rmEvent ("keydown", setValueOnEdit);
+
+            let td = this.parentNode.addStyle (`${_jsClass}_edit`);
+            let span = _js.createElement ("span");
+
+            if (evnt.key && evnt.key === "Escape") { this.value = _valueOnEdit; }
+
+            span.textContent = this.value.trim ();
+            
+            td.replaceChild (span, this);
+
+            if (this.value.trim () != _valueOnEdit) { _callbackOnEdit (td.parentNode, span, _valueOnEdit); }
+
+            _valueOnEdit = undefined;
+        }
+    },
+
+    main: function (Width, Height, Id) {
+        Id = Id || "js_tabla";
+
+        let skull = new JS_TABLA.skull (Width, Height, Id);
+        let prop = skull.getProperties ();
+
+        let _callbackOnPagination = function () {};
+        let _paginationActive = 0;
+
+        this.reset = skull.reset;
+        this.clear = skull.clear;
+        this.setConfig = skull.setConfig;
+        this.lines = skull.createRowTable;
+        this.onEdit = skull.onEdit;
+        this.onScroll = skull.onScroll;
+
+        this.getCols = function () { return prop.cols; };
+        this.getRows = function () { return prop.rows; };
+        this.getLimit = function () { return prop.limit; };
+
+        this.setLimit = function (limit) {
+            if (typeof (limit) != "number" || limit <= 0) { throw new TypeError ("Se esperaba un number mayor a 0 como argumento"); }
+
+            prop.limit = limit;
+        };
+
+        this.setDeleteTime = function (miliseconds) {
+            if (typeof (miliseconds) != "number") { throw new ErrorType ("Se esperaba un entero como argumento"); }
+
+            if (miliseconds <= 10) { miliseconds = 10; }
+            if (miliseconds >= 500) { miliseconds = 500; }
+
+            prop.deleteTime = miliseconds;
+        };
+
+        this.deleteLine = function (tr, callback) {
+            tr = (tr instanceof HTMLElement) ? tr : _js(`#${Id}_lines > tr[id="${tr}"]`);
+            callback = callback || function () {};
+
+            if (
+                tr == null
+                || tr.parentNode.id != `${Id}_lines`
+            ) { return; }
+
+            if (tr.currentChildNumber () == 0 && tr.parentNode.children.length > 1) {
+                let row1 = _js(`#${Id}_lines > tr:first-child > td`);
+                let row2 = _js(`#${Id}_lines > tr:nth-child(2) > td`);
+                let n = 0;
+
+                for (n; n < row1.length; n++) {
+                    row2[n].style.width = row1[n].style.width;
+                }
+            }
+
+            setTimeout (function () {
+                if (tr.parentNode == null) { return; }
+                
+                tr.parentNode.removeChild (tr);
+                callback ();
+            }, prop.deleteTime);
+
+            tr.style.opacity = 0;
+            prop.rows--;
+        };
+
+        this.onPagination = function (callback) {
+            if (typeof (callback) != "function") { throw new TypeError ("Se esperaba una función como argumento"); }
+
+            _callbackOnPagination = callback;
+
+            if (skull.getConfig ().pagination) {
+                _js(`
+                    #${Id}_ctrl_back,
+                    #${Id}_ctrl_next
+                `).event ("click", pagination);
+            }
+        };
+
+        function pagination () {
+            if (
+                _paginationActive
+                || prop.page == 0
+                || (/_back$/.test (this.id) && prop.page == 1)
+                || (/_next$/.test (this.id) && prop.rows < prop.limit)
+            ) { return; }
+
+            let page = prop.page;
+
+            _paginationActive = 1;
+
+            if (/_next$/.test (this.id)) { page++; } else { page--; }
+
+            _callbackOnPagination ({
+                currentPage: prop.page,
+                nextPage: page,
+                start: ((prop.page - 1) * prop.limit),
+                end: ((prop.page * prop.limit) - 1),
+                rollback: function () { _paginationActive = 0; },
+                commit: function () {
+                    prop.page = page;
+                    _paginationActive = 0;
+
+                    _js(`${Id}_ctrl_numpage`).textContent = page;
+                }
+            });
         }
     }
-
-    function checkType (argument, type) {
-        if (typeof (argument) !== type) {
-            throw new TypeError (`Se esperaba un ${type} como argumento.`);
-        }
-    }
-
-    window._js = js;
-});
+};
